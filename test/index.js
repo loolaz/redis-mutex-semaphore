@@ -39,6 +39,27 @@ describe('redis shared object test', function(){
 	it('get three semaphore sequentially', function(done){
 		var redisSemaphore1 = redisSharedObject1.getSemaphore(testSemaphoreKey),
 			redisSemaphore2 = redisSharedObject2.getSemaphore(testSemaphoreKey);
+		var p = redisSemaphore1.get()
+		.then(function(sem){
+			console.log('first semaphore : ' + sem);
+		}).then(function(){ 
+			return redisSemaphore1.get();
+		}).then(function(sem){
+			console.log('second semaphore : ' + sem)
+		}).then(function(){
+			return redisSemaphore1.get();
+		}).then(function(sem){
+			console.log('third semaphore : ' + sem);
+			done();
+		}).catch(function(err){
+			console.log(err);
+		});
+	}, 6000);
+
+
+/*	it('get three semaphore sequentially', function(done){
+		var redisSemaphore1 = redisSharedObject1.getSemaphore(testSemaphoreKey),
+			redisSemaphore2 = redisSharedObject2.getSemaphore(testSemaphoreKey);
 		redisSemaphore1.get(function(err, sem){
 			if(err)
 				console.log(err);
@@ -79,6 +100,8 @@ describe('redis shared object test', function(){
 			});
 		});	
 	}, 6000);
+
+
 
 	it('release three semaphore, but six will compete to get them..', function(done){
 		var redisSemaphore1 = redisSharedObject1.getSemaphore(testSemaphoreKey),
@@ -495,6 +518,6 @@ describe('redis shared object test', function(){
 			}
 		);
 
-	}, 20000); 
+	}, 20000); */
 
 });

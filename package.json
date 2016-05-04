@@ -1,11 +1,12 @@
 {
   "name": "redis-mutex-semaphore",
   "description": "redis mutex and semaphore library",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "main": "./lib",
   "dependencies": {
     "redis": "2.5.3",
-    "uuid": ">=2.0.0"
+    "uuid": ">=2.0.0",
+    "bluebird": "3.3.5"
   },
   "repository": {
     "type": "git",
