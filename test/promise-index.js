@@ -20,22 +20,21 @@ describe('redis shared object test', function(){
 
 	it('initialize', function(done){
 		redisSharedObject1 = RedisSharedObject(options);
-		redisSharedObject1.initialize(function(){
-			redisSharedObject1.client.del('sema:'+testSemaphoreKey);
-			redisSharedObject1.client.del('mutex:'+testMutexKey1);	
-			redisSharedObject1.client.del('mutex:'+testMutexKey2);	
-			redisSharedObject1.createSemaphore(testSemaphoreKey, 0, 3, true);
-			redisSharedObject1.createMutex(testMutexKey1, 10);
+		redisSharedObject1.initialize();
+		redisSharedObject2 = RedisSharedObject(options);
+		redisSharedObject2.initialize();
 
-			redisSharedObject2 = RedisSharedObject(options);
-			redisSharedObject2.initialize(function(){
-				redisSharedObject2.createSemaphore(testSemaphoreKey, 0, 3, true);
-				redisSharedObject2.createMutex(testMutexKey1, 10);
-				setTimeout( function(){ 
-					done(); 
-				}, 3000);
-			});
-		});
+		redisSharedObject1.client.del('sema:'+testSemaphoreKey);
+		redisSharedObject1.client.del('mutex:'+testMutexKey1);	
+		redisSharedObject1.client.del('mutex:'+testMutexKey2);	
+		redisSharedObject1.createSemaphore(testSemaphoreKey, 0, 3, true);
+		redisSharedObject1.createMutex(testMutexKey1, 10);
+
+		redisSharedObject2.createSemaphore(testSemaphoreKey, 0, 3, true);
+		redisSharedObject2.createMutex(testMutexKey1, 10);
+		setTimeout( function(){ 
+			done(); 
+		}, 3000);
 	});
 
 	it('get three semaphore sequentially', function(done){
