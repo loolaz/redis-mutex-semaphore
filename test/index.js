@@ -17,7 +17,7 @@ describe('redis shared object test', function(){
 	var RedisSharedObject = require('../lib');
 
 	it('initialize', function(done){
-		redisSharedObject1 = new RedisSharedObject(options);
+		redisSharedObject1 = RedisSharedObject(options);
 		redisSharedObject1.initialize(function(){
 			redisSharedObject1.client.del('sema:'+testSemaphoreKey);
 			redisSharedObject1.client.del('mutex:'+testMutexKey1);	
@@ -25,7 +25,7 @@ describe('redis shared object test', function(){
 			redisSharedObject1.createSemaphore(testSemaphoreKey, 0, 3, true);
 			redisSharedObject1.createMutex(testMutexKey1, 10);
 
-			redisSharedObject2 = new RedisSharedObject(options);
+			redisSharedObject2 = RedisSharedObject(options);
 			redisSharedObject2.initialize(function(){
 				redisSharedObject2.createSemaphore(testSemaphoreKey, 0, 3, true);
 				redisSharedObject2.createMutex(testMutexKey1, 10);
