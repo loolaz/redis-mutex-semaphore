@@ -60,13 +60,13 @@ describe('redis shared object test', function(){
 					async.parallel([
 						function(callback){
 							redisSemaphore1.getStatus(function(err, result){
-								expect(result.count).toEqual(3);
+								expect(Number(result.value)).toEqual(3);
 								callback(null, true);
 							});
 						},
 						function(callback){
 							redisSemaphore2.getStatus(function(err, result){
-								expect(result.count).toEqual(3);
+								expect(Number(result.value)).toEqual(3);
 								callback(null, true);
 							});
 						}
@@ -182,7 +182,7 @@ describe('redis shared object test', function(){
 					async.parallel([
 						function(callback){
 							redisSemaphore1.getStatus(function(err, result){
-								firstCount += result.count;
+								firstCount += Number(result.value);
 								firstWaiting += result.waiting;
 								firstObserving += result.observing;
 								callback(null, true);
@@ -190,7 +190,7 @@ describe('redis shared object test', function(){
 						},
 						function(callback){
 							redisSemaphore2.getStatus(function(err, result){
-								secondCount += result.count;
+								secondCount += Number(result.value);
 								secondWaiting += result.waiting;
 								secondObserving += result.observing;
 								callback(null, true);
@@ -253,7 +253,7 @@ describe('redis shared object test', function(){
 					async.parallel([
 						function(callback){
 							redisSemaphore1.getStatus(function(err, result){
-								firstCount += result.count;
+								firstCount += Number(result.value);
 								firstWaiting += result.waiting;
 								firstObserving += result.observing;
 								callback(null, true);
@@ -261,7 +261,7 @@ describe('redis shared object test', function(){
 						},
 						function(callback){
 							redisSemaphore2.getStatus(function(err, result){
-								secondCount += result.count;
+								secondCount += Number(result.value);
 								secondWaiting += result.waiting;
 								secondObserving += result.observing;
 								callback(null, true);

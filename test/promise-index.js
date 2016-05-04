@@ -59,53 +59,6 @@ describe('redis shared object test', function(){
 		});
 	}, 6000);
 
-
-/*	it('get three semaphore sequentially', function(done){
-		var redisSemaphore1 = redisSharedObject1.getSemaphore(testSemaphoreKey),
-			redisSemaphore2 = redisSharedObject2.getSemaphore(testSemaphoreKey);
-		redisSemaphore1.get(function(err, sem){
-			if(err)
-				console.log(err);
-			else
-				console.log('first semaphore : ' + sem);
-
-			redisSemaphore1.get(function(err, sem){
-				if(err)
-					console.log(err);
-				else
-					console.log('second semaphore : ' + sem);
-
-				redisSemaphore2.get(function(err, sem){
-					if(err)
-						console.log(err);
-					else
-						console.log('third semaphore : ' + sem);	
-
-					async.parallel([
-						function(callback){
-							redisSemaphore1.getStatus(function(err, result){
-								expect(result.count).toEqual(3);
-								callback(null, true);
-							});
-						},
-						function(callback){
-							redisSemaphore2.getStatus(function(err, result){
-								expect(result.count).toEqual(3);
-								callback(null, true);
-							});
-						}
-						],
-						function(err, result){
-							done();
-						}
-					);
-				});
-			});
-		});	
-	}, 6000); */
-
-
-
 	it('release three semaphore, but six will compete to get them..', function(done){
 		var redisSemaphore1 = redisSharedObject1.getSemaphore(testSemaphoreKey),
 			redisSemaphore2 = redisSharedObject2.getSemaphore(testSemaphoreKey);		
@@ -136,55 +89,7 @@ describe('redis shared object test', function(){
 					console.log(err);
 					callback(err, null);
 				});					
-			},		
-			/*function(callback){
-				Promise.try(function(){
-					return redisSemaphore1.waitingFor();
-				}).then(function(result){
-					console.log('tried and finally got one 1 : ' + result);
-					callback(null, true);
-				});
-			},
-			function(callback){
-				Promise.try(function(){
-					return redisSemaphore1.waitingFor();
-				}).then(function(result){
-					console.log('tried and finally got one 2 : ' + result);
-					callback(null, true);
-				});
-			},
-			function(callback){
-				Promise.try(function(){
-					return redisSemaphore1.waitingFor();
-				}).then(function(result){
-					console.log('tried and finally got one 3 : ' + result);
-					callback(null, true);
-				});
-			},
-			function(callback){
-				Promise.try(function(){
-					return redisSemaphore2.waitingFor();
-				}).then(function(result){
-					console.log('tried and finally got one 4 : ' + result);
-					callback(null, true);
-				});
-			},
-			function(callback){
-				Promise.try(function(){
-					return redisSemaphore2.waitingFor();
-				}).then(function(result){
-					console.log('tried and finally got one 5 : ' + result);
-					callback(null, true);
-				});
-			},
-			function(callback){
-				Promise.try(function(){
-					return redisSemaphore2.waitingFor();
-				}).then(function(result){
-					console.log('tried and finally got one 6 : ' + result);
-					callback(null, true);
-				});
-			}*/			
+			},			
 			function(callback){
 				redisSemaphore1.waitingFor(6).then(function(result){
 					console.log('tried and finally got one(1) : ' + result);
@@ -253,7 +158,7 @@ describe('redis shared object test', function(){
 					async.parallel([
 						function(callback){
 							redisSemaphore1.getStatus().then(function(result){
-								firstCount += result.count;
+								firstCount += Number(result.value);
 								firstWaiting += result.waiting;
 								firstObserving += result.observing;
 								callback(null, true);
@@ -261,7 +166,7 @@ describe('redis shared object test', function(){
 						},
 						function(callback){
 							redisSemaphore2.getStatus().then(function(result){
-								secondCount += result.count;
+								secondCount += Number(result.value);
 								secondWaiting += result.waiting;
 								secondObserving += result.observing;
 								callback(null, true);
@@ -324,7 +229,7 @@ describe('redis shared object test', function(){
 					async.parallel([
 						function(callback){
 							redisSemaphore1.getStatus(function(err, result){
-								firstCount += result.count;
+								firstCount += Number(result.value);
 								firstWaiting += result.waiting;
 								firstObserving += result.observing;
 								callback(null, true);
@@ -332,7 +237,7 @@ describe('redis shared object test', function(){
 						},
 						function(callback){
 							redisSemaphore2.getStatus(function(err, result){
-								secondCount += result.count;
+								secondCount += Number(result.value);
 								secondWaiting += result.waiting;
 								secondObserving += result.observing;
 								callback(null, true);
@@ -354,64 +259,55 @@ describe('redis shared object test', function(){
 	}, 20000);
 
 
-/*	it('get mutex and another waits for being released', function(done){
+	it('get mutex and another waits for being released', function(done){
 		var redisMutex1 = redisSharedObject1.getMutex(testMutexKey1),
 			redisMutex2 = redisSharedObject2.getMutex(testMutexKey1);
 		async.parallel([
 			function(callback){
-				redisMutex1.get(function(err, result){
-					if(err)
-						console.log(err);
-					else{
-						console.log('got mutex(1) : ' + result);
-						muid = result;
-					}
-					callback(err, result);
+				redisMutex1.get().then(function(result){
+					console.log('got mutex(1) : ' + result);
+					muid = result;
+					callback(null, result);
+				}).catch(function(err){
+					console.log(err);
+					callback(err, null);
 				});					
 			},
 			function(callback){
-				redisMutex2.get(function(err, result){
-					if(err)
-						console.log(err);
-					else{
-						console.log('got mutex(2) : ' + result);
-						muid = result;
-					}
-					callback(err, result);
+				redisMutex2.get().then(function(result){
+					console.log('got mutex(2) : ' + result);
+					muid = result;
+					callback(null, result);
+				}).catch(function(err){
+					console.log(err);
+					callback(err, null);
 				});					
 			},
 			function(callback){
-				redisMutex1.observing(8, function(err, released){
-					if(err)
-						console.log('err while observing : ' + err);
-					else{
-						console.log('sucessfully observed releasing : ' + released);
-					}
-					
+				redisMutex1.observing(8).then(function(released){
+					console.log('sucessfully observed releasing : ' + released);
+				}).catch(function(err){
+					console.log('err while observing : ' + err);
 				});
 				callback(null, true);					
 			},
 			function(callback){
-				redisMutex2.waitingFor(1, function(err, result){
-					if(err)
-						console.log('err while waiting(3) : ' + err);
-					else{
-						console.log('got mutex(3) : ' + result);
-						muid = result;
-					}
+				redisMutex2.waitingFor(1).then(function(result){
+					console.log('got mutex(3) : ' + result);
+					muid = result;
+				}).catch(function(err){
+					
+					console.log('err while waiting(3) : ' + err);
 					expect(err.message).toEqual('timedout');
 				});
 				callback(null, true);					
 			},
 			function(callback){
-				redisMutex1.waitingFor(8, function(err, result){
-					if(err)
-						console.log('err while waiting(4) : ' + err);
-					else{
-						console.log('got mutex(4) : ' + result);
-						muid = result;
-					}
-					
+				redisMutex1.waitingFor(8).then(function(result){
+					console.log('got mutex(4) : ' + result);
+					muid = result;
+				}).catch(function(err){
+					console.log('err while waiting(4) : ' + err);
 				});
 				callback(null, true);					
 			}
@@ -458,21 +354,13 @@ describe('redis shared object test', function(){
 			redisMutex2 = redisSharedObject2.getMutex(testMutexKey1);		
 		async.parallel([
 			function(callback){
-				redisMutex1.rel('wrong_id', function(err, result){
-					if(err)
-						console.log('err while releasing : ' + err);
-					else
-						console.log('released : ' + result);
-
-
-					redisMutex1.rel(muid, function(err, result){
-						if(err)
-							console.log('err while releasing : ' + err);
-						else
-							console.log('released : ' + result);
-						callback(err, result);
-					});
-				});						
+				redisMutex1.rel('wrong_id').catch(function(err){
+					console.log('err while releasing : ' + err);
+					return redisMutex1.rel(muid);
+				}).then(function(result){
+					console.log('released : ' + result);
+					callback(null, result);
+				});					
 			}
 			],function(err, result){
 				setTimeout( function(){ 
@@ -519,14 +407,13 @@ describe('redis shared object test', function(){
 		});
 		async.parallel([
 			function(callback){
-				redisMutex1.get(function(err, result){
-					if(err)
-						console.log('err while waiting(5) : ' + err);
-					else{
-						console.log('got mutex(5) : ' + result);
-						muid = result;
-					}
-					callback(err, result);
+				redisMutex1.get().then(function(result){
+					console.log('got mutex(5) : ' + result);
+					muid = result;
+					callback(null, result);
+				}).catch(function(err){
+					console.log('err while waiting(5) : ' + err);
+					callback(err, null);
 				});					
 			}
 			],function(err, result){
@@ -567,6 +454,6 @@ describe('redis shared object test', function(){
 			}
 		);
 
-	}, 20000); */
+	}, 20000);
 
 });
