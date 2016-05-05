@@ -38,7 +38,7 @@ Semaphore
 semaphore.get(function(err, result){
   // if succeeds, result is 1, otherwise 0
   semaphore.rel(function(err, result){
-    // callback();
+    // result is remained count
   });
 });
 ```
@@ -49,7 +49,7 @@ Mutex
 mutex.get(function(err, mutexID){
   // if succeeds, mutexID is returned, otherwise null
   mutex.rel(mutexID, function(err, result){
-    // callback();
+    // result is remained semaphore count
   });
 });
 ```
@@ -89,8 +89,10 @@ Semaphore
 semaphore.get().then(function(result){
   // if succeeds, result is 1
   // doing something
-}).then(function(){
-  return semaphore.rel();
+  if(result)  
+    return semaphore.rel();
+}).then(function(result){
+  // doing something
 }).catch(function(e){
 
 });
