@@ -27,7 +27,7 @@ var mutex = factory.createMutex('Key', 10 /* ttl : second */);
 
 ## Usage
 
-### 1. CallBack
+### 1. Using CallBack
 
 Once you've constructed an instance of Mutex or Semaphore, you can use it with callbacks.
 
@@ -78,7 +78,7 @@ instance.getStaus(function(err, result){
 });
 ```
 
-### 2. Promise
+### 2. Using Promise
 
 If callback is omitted, you can use it with promise.
 
