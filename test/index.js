@@ -166,7 +166,7 @@ describe('redis shared object test', function(){
 			},
 			function(callback){
 				redisSemaphore2.observing(6, function(err, result){
-					console.log('just waited, and woke up');
+					console.log('just waited, and woke up : ' + result);
 					callback(err, result);
 				});					
 			}
