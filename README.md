@@ -49,7 +49,7 @@ Mutex
 mutex.get(function(err, mutexID){
   // if succeeds, mutexID is returned, otherwise null
   mutex.rel(mutexID, function(err, result){
-    // callback();
+    // result is remained semaphore count
   });
 });
 ```
