@@ -20,7 +20,6 @@ var factory = require('redis-mutex-semaphore')({
   
 var factory = require('redis-mutex-semaphore')(redisClient);	
 
-factory.initialize();
 var semaphore= factory.createSemaphore('Key', 0 /* initialCount */, 3 /* maxCount */, false /* sharedConnection */);
 var mutex = factory.createMutex('Key', 10 /* ttl : second */); 
 ```
