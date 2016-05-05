@@ -87,12 +87,12 @@ Semaphore
 
 ```js
 semaphore.get().then(function(result){
-  // if succeeds, result is 1
+  // if succeeds, result is 1, otherwise 0
   // doing something
   if(result)  
     return semaphore.rel();
 }).then(function(result){
-  // doing something
+  // result is remained count
 }).catch(function(e){
 
 });
