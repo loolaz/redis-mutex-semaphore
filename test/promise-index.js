@@ -25,10 +25,10 @@ describe('redis shared object test', function(){
 		redisSharedObject1.client.del('sema:'+testSemaphoreKey);
 		redisSharedObject1.client.del('mutex:'+testMutexKey1);	
 		redisSharedObject1.client.del('mutex:'+testMutexKey2);	
-		redisSharedObject1.createSemaphore(testSemaphoreKey, 0, 3, true);
+		redisSharedObject1.createSemaphore(testSemaphoreKey, 0, 3);
 		redisSharedObject1.createMutex(testMutexKey1, 10);
 
-		redisSharedObject2.createSemaphore(testSemaphoreKey, 0, 3, true);
+		redisSharedObject2.createSemaphore(testSemaphoreKey, 0, 3);
 		redisSharedObject2.createMutex(testMutexKey1, 10);
 		setTimeout( function(){ 
 			done(); 
