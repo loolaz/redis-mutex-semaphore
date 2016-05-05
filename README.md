@@ -1,5 +1,5 @@
 # redis-mutex-semaphore
-Mutex and Semaphore library using redis
+This is simple mutex and semaphore library using redis.
 
 ```sh
 npm install redis-mutex-semaphore
