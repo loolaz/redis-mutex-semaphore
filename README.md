@@ -7,8 +7,6 @@ npm install redis-mutex-semaphore
 
 ## Constructing Instances
 
-**For semaphore, you can enable sharedConnection to be true if you want to use semaphore in one redis connection for some reason. This option allows to use a temporary redis connection whenever trying to acquiring a semaphore.**
-
 ```js
 var factory = require('redis-mutex-semaphore')({
   		host: '127.0.0.1',
@@ -20,7 +18,7 @@ var factory = require('redis-mutex-semaphore')({
   
 var factory = require('redis-mutex-semaphore')(redisClient);	
 
-var semaphore= factory.createSemaphore('Key', 0 /* initialCount */, 3 /* maxCount */, false /* sharedConnection */);
+var semaphore= factory.createSemaphore('Key', 0 /* initialCount */, 3 /* maxCount */);
 var mutex = factory.createMutex('Key', 10 /* ttl : second */); 
 
 factory.end(); 
