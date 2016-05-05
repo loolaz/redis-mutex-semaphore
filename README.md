@@ -89,8 +89,10 @@ Semaphore
 semaphore.get().then(function(result){
   // if succeeds, result is 1
   // doing something
-}).then(function(){
-  return semaphore.rel();
+  if(result)  
+    return semaphore.rel();
+}).then(function(result){
+  // doing something
 }).catch(function(e){
 
 });
