@@ -18,9 +18,7 @@ describe('redis shared object test', function(){
 
 	it('initialize', function(done){
 		redisSharedObject1 = RedisSharedObject(options);
-		redisSharedObject1.initialize();
 		redisSharedObject2 = RedisSharedObject(options);
-		redisSharedObject2.initialize();
 
 		redisSharedObject1.client.del('sema:'+testSemaphoreKey);
 		redisSharedObject1.client.del('mutex:'+testMutexKey1);	
