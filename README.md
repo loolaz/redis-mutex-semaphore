@@ -38,7 +38,7 @@ Semaphore
 semaphore.get(function(err, result){
   // if succeeds, result is 1, otherwise 0
   semaphore.rel(function(err, result){
-    // callback();
+    // result is remained count
   });
 });
 ```
