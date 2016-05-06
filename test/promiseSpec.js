@@ -9,16 +9,11 @@ redis= require('redis'),
 	testSemaphoreKey = 'testObjectSem',
 	testMutexKey1 = 'testObjectMutex1',
 	testMutexKey2 = 'testObjectMutex2',
-	/*options = {
+	options = {
 		host: '127.0.0.1',
 		port: 6379,
 		db: 1
-	};*/
-	options = {
-				host: 'jp-cmm-navy-l.knowre.com',
-				pass: 'j#m#v#DYDXOR',
-				db: 5
-			};
+	};
 
 describe('redis shared object test', function(){
 	var RedisSharedObject = require('../lib');
