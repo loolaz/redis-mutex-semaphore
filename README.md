@@ -21,7 +21,7 @@ npm install redis-mutex-semaphore
 
 - result : mutexClient object for success / null for fail
 
-**Whenever createXXXClient method is called, the redis key that you have passed through is also reset. So please be careful that you do not lose any context of these objects by mistakenly calling this method with the same key again in other places(other codes in the same process/other processes/other machines) while using the mutex/semaphore with the key.**
+Whenever createXXXClient method is called, the redis key that you have passed through is also reset. So please be careful that you do not lose any context of these objects by mistakenly calling this method with the same key again in other places(other codes in the same process/other processes/other machines) while using the mutex/semaphore with the key.
 
 ```js
 var factory = require('redis-mutex-semaphore')({
@@ -49,7 +49,7 @@ factory.end();
 
 Same as creating xxxClient methods, you can call methods with callbacks.
 
-#### get & release method
+#### 1.1. get & release method
 
 **Semaphore.get(key, function callback(err, result){})**
  - result : 1 for success / 0 for fail to accquire
@@ -81,7 +81,7 @@ mutex.get(function(err, mutexID){
 });
 ```
 
-#### wait/observe method
+#### 1.2. wait/observe method
 
 Both waitingFor and observe methods wait for a shared object to be released.
 The difference between them is that waitingFor keeps trying to get a shared object until timedout, but observing just returns when the observed object is released.
@@ -110,7 +110,7 @@ Semaphore/Mutex.observing(10 /* timeout : second */, function(err, result){
 
 If callback is omitted, you can use it with promise.
 
-#### get & release method 
+#### 2.1. get & release method 
 
 **Semaphore.get(key).then(function(result){})**
  - result : 1 for success / 0 for fail to accquire
@@ -147,7 +147,7 @@ mutex.get().then(function(mutexID){
 });
 ```
 
-#### wait/observe method
+#### 2.2. wait/observe method
 
 **Semaphore/Mutex.waitingFor(timeout).then(function(result){}).catch(function(err){})**
  - result(semaphore) : 1 for success / 0 for fail to accquire
@@ -172,7 +172,7 @@ Semaphore/Mutex.observing(10 /* timeout : second */).then(function(result){
 });
 ```
 
-## Others
+### 3. Others
 
 **Checking expiry of mutex**
 
