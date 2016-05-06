@@ -7,12 +7,12 @@ npm install redis-mutex-semaphore
 
 ## Constructing Instances
 
-**Semaphore.createSemaphoreClient(key, count, [function callback(err, result){}])**
-**or Semaphore.createSemaphoreClient(key, count).then(function(result){})**
+**Semaphore.createSemaphoreClient(key, count, [function callback(err, result){}])
+or Semaphore.createSemaphoreClient(key, count).then(function(result){})**
 - result : semaphoreClient object for success / null or undefined for fail
 
-**Semaphore.createMutexClient(key, ttl, [function callback(err, result){}])**
-**or Semaphore.createMutexClient(key, ttl).then(function(result){})**
+**Mutex.createMutexClient(key, ttl, [function callback(err, result){}])
+or Mutex.createMutexClient(key, ttl).then(function(result){})**
 
 - result : mutexClient object for success / null or undefined for fail
 
