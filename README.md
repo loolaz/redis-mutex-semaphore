@@ -52,7 +52,7 @@ Same as creating xxxClient methods, you can call methods with callbacks.
 #### 1.1. get & release method
 
 **Semaphore.get(key, function callback(err, result){})**
- - result : 1 for success / 0 for fail to accquire
+ - result : true for success / false for fail to accquire
  
 **Semaphore.rel(function callback(err, result){})**
  - result : the number of remained semaphore for success
@@ -91,7 +91,7 @@ Both waitingFor and observe methods wait for a shared object to be released.
 The difference between them is that waitingFor keeps trying to get a shared object until timedout, but observing just returns when the observed object is released.
 
 **Semaphore/Mutex.waitingFor(timeout, function callback(err, result){})**
- - result(semaphore) : 1 for success / 0 for fail to accquire
+ - result(semaphore) : true for success / false for fail to accquire
  - result(mutex) : mutex id for success / null for fail to lock
  - err(semaphore/mutex) : timedout error or other errors returned
  
@@ -119,7 +119,7 @@ If callback is omitted, you can use it with promise.
 #### 2.1. get & release method 
 
 **Semaphore.get(key).then(function(result){})**
- - result : 1 for success / 0 for fail to accquire
+ - result : true for success / false for fail to accquire
  
 **Semaphore.rel().then(function(result){})**
  - result : the number of remained semaphore for success
@@ -164,7 +164,7 @@ mutex.get().then(function(mutexID){
 #### 2.2. wait/observe method
 
 **Semaphore/Mutex.waitingFor(timeout).then(function(result){}).catch(function(err){})**
- - result(semaphore) : 1 for success / 0 for timedout or errors 
+ - result(semaphore) : true for success / false for timedout or errors 
  - result(mutex) : mutex id for success / null for timedout or errors 
  - err(semaphore/mutex) : timedout error or other errors returned
 
