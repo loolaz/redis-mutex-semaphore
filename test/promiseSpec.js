@@ -32,10 +32,17 @@ describe('redis shared object test', function(){
 		}, 3000);
 	});
 
+	it('initial status', function(done){
+		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey);
+		redisSemaphore1.getStatus(function(err, result){
+			console.log('initial status');
+			console.log(result);
+			done();
+		});
+	});
+
 	it('get three semaphore sequentially', function(done){
-		
-		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey),
-			redisSemaphore2 = redisSharedObject2.getSemaphoreClient(testSemaphoreKey);
+		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey);
 		redisSemaphore1.get()
 		.then(function(sem){
 			console.log('first semaphore : ' + sem);
@@ -47,7 +54,13 @@ describe('redis shared object test', function(){
 			return redisSemaphore1.get();
 		}).then(function(sem){
 			console.log('third semaphore : ' + sem);
-			done();
+
+			redisSemaphore1.getStatus(function(err, result){
+				console.log('consumed three semaphore');
+				console.log(result);
+				done();
+			});
+
 		}).catch(function(err){
 			console.log('error :' + err);
 			done();
@@ -153,6 +166,7 @@ describe('redis shared object test', function(){
 					async.parallel([
 						function(callback){
 							redisSemaphore1.getStatus().then(function(result){
+								console.log(result);
 								firstCount += result.value;
 								firstWaiting += result.waiting;
 								firstObserving += result.observing;
@@ -161,6 +175,7 @@ describe('redis shared object test', function(){
 						},
 						function(callback){
 							redisSemaphore2.getStatus().then(function(result){
+								console.log(result);
 								secondCount += result.value;
 								secondWaiting += result.waiting;
 								secondObserving += result.observing;
