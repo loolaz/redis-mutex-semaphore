@@ -13,13 +13,13 @@ npm install redis-mutex-semaphore
 **Semaphore.createSemaphoreClient(key, count, [function callback(err, result){}])**
 
 **or Semaphore.createSemaphoreClient(key, count).then(function(result){})**
-- result : semaphoreClient object for success / null or undefined for fail
+- result : semaphoreClient object for success / null for fail
 
 **Mutex.createMutexClient(key, ttl, [function callback(err, result){}])**
 
 **or Mutex.createMutexClient(key, ttl).then(function(result){})**
 
-- result : mutexClient object for success / null or undefined for fail
+- result : mutexClient object for success / null for fail
 
 **Whenever createXXXClient method is called, the redis key that you have passed through is also reset. So please be careful that you do not lose any context of these objects by mistakenly calling this method with the same key again in other places(other codes in the same process/other processes/other machines) while using the mutex/semaphore with the key.**
 
@@ -51,28 +51,32 @@ Same as creating xxxClient methods, you can call methods with callbacks.
 
 #### get & release method
 
-**Semaphore.get(key, callback)**
-
-**Semaphore.rel(callback)**
+**Semaphore.get(key, function callback(err, result){})**
+ - result : 1 for success / 0 for fail to accquire
+ 
+**Semaphore.rel(function callback(err, result){})**
+ - result : the number of remained semaphore for success
 
 ```js
 semaphore.get(function(err, result){
-  // if succeeds, result is 1, otherwise 0
+
   semaphore.rel(function(err, result){
-    // result is remained count
+
   });
 });
 ```
 
-**Mutex.get(key, callback)**
-
-**Mutex.rel(callback)**
+**Mutex.get(key, function callback(err, result){})**
+ - result : mutexid(uuid v4) for success / null for failed to lock
+ 
+**Mutex.rel(function callback(err, result){})**
+ - result : true for sucess / false for fail to delete key
 
 ```js
 mutex.get(function(err, mutexID){
-  // if succeeds, mutexID is returned, otherwise null
+
   mutex.rel(mutexID, function(err, result){
-    // result is remained semaphore count
+
   });
 });
 ```
@@ -92,22 +96,14 @@ The difference between them is that waitingFor keeps trying to get a shared obje
  - err(semaphore/mutex) : timedout error or other errors returned
  
 ```js
-instance.waitingFor(10 /* timeout : second */, function(err, result){
-  // for mutex, return value will be either mutexID or timedout err
-  // for semaphore, return value will be 1 or timedout err
+Semaphore/Mutex.waitingFor(10 /* timeout : second */, function(err, result){
+
 });
 
-instance.observing(10 /* timeout : second */, function(err, result){
-  // return value
-  // success 
-  // false for timedout/other errors
+Semaphore/Mutex.observing(10 /* timeout : second */, function(err, result){
+
 });
 
-instance.getStaus(function(err, result){
-  // result object contains value as string, the number of waiting, the number of observing
-  // for mutex, value means mutex_id when there is mutex object named by key
-  // for semaphore, value means the number of semaphore
-});
 ```
 
 ### 2. Using Promise
@@ -116,33 +112,36 @@ If callback is omitted, you can use it with promise.
 
 #### get & release method 
 
-**Semaphore.get(key)**
-
-**Semaphore.rel()**
-
+**Semaphore.get(key).then(function(result){})**
+ - result : 1 for success / 0 for fail to accquire
+ 
+**Semaphore.rel().then(function(result){})**
+ - result : the number of remained semaphore for success
+ 
 ```js
 semaphore.get().then(function(result){
-  // if succeeds, result is 1, otherwise 0
-  // doing something
+
   if(result)  
     return semaphore.rel();
 }).then(function(result){
-  // result is remained count
+
 }).catch(function(e){
 
 });
 ```
 
-**Mutex.get(key)**
-
-**Mutex.rel(id)**
-
+**Mutex.get(key).then(function(mutex_id){})**
+ - result : mutexid(uuid v4) for success / null for failed to lock
+ 
+**Mutex.rel(mutex_id).then(function(result){})**
+ - result : true for sucess / false for fail to delete key
+ 
 ```js
 mutex.get().then(function(mutexID){
-  // if succeeds, mutexID is returned
+
   return Promise.resolve(mutexID);
 }).then(function(mutexID){
-  return mutex.rel(mutexID);
+
 }).catch(function(e){
 
 });
@@ -160,24 +159,16 @@ mutex.get().then(function(mutexID){
  - err(semaphore/mutex) : timedout error or other errors returned
 
 ```js
-instance.waitingFor(10 /* timeout : second */).then(function(result){
-  // for mutex, return value will be either mutexID
-  // for semaphore, return value will be 1
+Semaphore/Mutex.waitingFor(10 /* timeout : second */).then(function(result){
+
 }).catch(function(e){
   // e could be timed out error or others
 });
 
-instance.observing(10 /* timeout : second */).then(function(result){
-  // for mutex, return value will be either true
-  // for semaphore, return value will be true
+Semaphore/Mutex.observing(10 /* timeout : second */).then(function(result){
+
 }).catch(function(e){
   // e could be timed out error or others;
-});
-
-instance.getStaus().then(function(result){
-  // result object contains value as string, the number of waiting, the number of observing
-  // for mutex, value means mutex_id when there is mutex object named by key
-  // for semaphore, value means the number of semaphore
 });
 ```
 
@@ -185,9 +176,27 @@ instance.getStaus().then(function(result){
 
 **Checking expiry of mutex**
 
+```js
 Mutex.on('expired', function(expired_id){});
+```
+
+**Checking status of queue**
+
+```js
+Semaphore/Mutex.getStaus(function callback(err, result){}) // callback
+Semaphore/Mutex.getStaus().then(function(result){}) // promise
+```
+
+result object contains value, the number of waiting, the number of observing
+- for mutex, value is mutex_id
+- for semaphore, value is current semaphore count
 
 **Reset semaphore/mutex**
 
-Semaphore.reset(count[,callback])
-Mutex.reset([callbakc])
+```js
+Semaphore.reset(count, function callback(err, result){}) // callback
+Semaphore.reset(count).then(function(result){}) // promise
+
+Mutex.reset(function callback(err, result){}) // callback
+Mutex.reset().then(function(result){}) // promise
+```
