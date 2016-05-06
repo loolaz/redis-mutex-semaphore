@@ -20,5 +20,8 @@
     "redis",
     "javascript"
   ],
+  "scripts": {
+    "test": "./node_modules/.bin/jasmine ./test/*"
+  },
   "license": "MIT"
 }
