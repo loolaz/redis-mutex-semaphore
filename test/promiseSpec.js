@@ -44,16 +44,19 @@ describe('redis shared object test', function(){
 	it('get three semaphore sequentially', function(done){
 		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey);
 		redisSemaphore1.get()
-		.then(function(sem){
-			console.log('first semaphore : ' + sem);
+		.then(function(result){
+			if(result)
+				console.log('first semaphore : ' + result);
 		}).then(function(){ 
 			return redisSemaphore1.get();
-		}).then(function(sem){
-			console.log('second semaphore : ' + sem)
+		}).then(function(result){
+			if(result)
+				console.log('second semaphore : ' + result)
 		}).then(function(){
 			return redisSemaphore1.get();
-		}).then(function(sem){
-			console.log('third semaphore : ' + sem);
+		}).then(function(result){
+			if(result)
+				console.log('third semaphore : ' + result);
 
 			redisSemaphore1.getStatus(function(err, result){
 				console.log('consumed three semaphore');

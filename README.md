@@ -52,14 +52,14 @@ Same as creating xxxClient methods, you can call methods with callbacks.
 #### 1.1. get & release method
 
 **Semaphore.get(key, function callback(err, result){})**
- - result : 1 for success / -1 for transaction fail(in this case, it will retry automatically) / 0 for fail to accquire
+ - result : 1 for success / 0 for fail to accquire
  
 **Semaphore.rel(function callback(err, result){})**
  - result : the number of remained semaphore for success
 
 ```js
 semaphore.get(function(err, result){
-  if(result === 1){ // you should not code like this : if(result) { .. }
+  if(result){
     // doing something with semaphore
     semaphore.rel(function(err, result){
   
@@ -119,21 +119,21 @@ If callback is omitted, you can use it with promise.
 #### 2.1. get & release method 
 
 **Semaphore.get(key).then(function(result){})**
- - result : 1 for success / -1 for transaction fail(in this case, it will retry automatically) / 0 for fail to accquire
+ - result : 1 for success / 0 for fail to accquire
  
 **Semaphore.rel().then(function(result){})**
  - result : the number of remained semaphore for success
  
 ```js
 semaphore.get().then(function(result){
-  if(result === 1){  // you should not code like this : if(result) { .. }
+  if(result){ 
     // doing something with semaphore
     return Promise.resolve(result);
   }
   else
     // doing others or return Promise.reject()
 }).then(function(result){
-  if(result === 1)
+  if(result)
     return semaphore.rel();
 }).catch(function(e){
 

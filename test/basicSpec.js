@@ -16,6 +16,7 @@ describe('redis shared object test', function(){
 	var RedisSharedObject = require('../lib');
 	var initCount = 0;
 	it('initialize', function(done){
+
 		for(var i = 0; i < 50; i++){
 			var factory = RedisSharedObject(options);
 			factory.createSemaphoreClient(testSemaphoreKey, 3).then(function(result){
@@ -38,7 +39,7 @@ describe('redis shared object test', function(){
 		for(var i =0 ; i < 50 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.waitingFor(100, function(err, result){
-				if(result == 1){
+				if(result){
 					j++;
 					console.log(' accquire : (' + j + ')');
 					if(j === 50){
@@ -62,7 +63,7 @@ describe('redis shared object test', function(){
 			});
 		}
 		//done();
-	}, 100000);
+	}, 120000);
 
 	it('semaphore promise', function(done){
 		var j = 0;
@@ -70,7 +71,7 @@ describe('redis shared object test', function(){
 		for(var i =0 ; i < 50 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.waitingFor(100).then(function(result){
-				if(result == 1){
+				if(result){
 					j++;
 					console.log(' accquire : (' + j + ')');
 					if(j === 50){
@@ -87,7 +88,7 @@ describe('redis shared object test', function(){
 			});
 
 		}
-	}, 100000);
+	}, 120000);
 
 	it('mutex callback', function(done){
 		var j = 0;
@@ -119,7 +120,7 @@ describe('redis shared object test', function(){
 			});
  
 		}
-	}, 100000);
+	}, 120000);
 
 	it('mutex promise', function(done){
 		var j = 0;
@@ -145,7 +146,7 @@ describe('redis shared object test', function(){
 			});
 
 		}
-	}, 100000);
+	}, 120000);
 
 	it('finalize', function(done){
 		setTimeout(function(){
