@@ -52,17 +52,19 @@ Same as creating xxxClient methods, you can call methods with callbacks.
 #### 1.1. get & release method
 
 **Semaphore.get(key, function callback(err, result){})**
- - result : 1 for success / 0 for fail to accquire
+ - result : 1 for success / -1 for transaction fail(in this case, it will retry automatically) / 0 for fail to accquire
  
 **Semaphore.rel(function callback(err, result){})**
  - result : the number of remained semaphore for success
 
 ```js
 semaphore.get(function(err, result){
-
-  semaphore.rel(function(err, result){
-
-  });
+  if(result === 1){ // you should not code like this : if(result) { .. }
+    // doing something with semaphore
+    semaphore.rel(function(err, result){
+  
+    });
+  }
 });
 ```
 
@@ -74,10 +76,12 @@ semaphore.get(function(err, result){
 
 ```js
 mutex.get(function(err, mutexID){
-
-  mutex.rel(mutexID, function(err, result){
-
-  });
+  if(mutexID){
+    //doing something with lock
+    mutex.rel(mutexID, function(err, result){
+  
+    });
+  }
 });
 ```
 
@@ -97,11 +101,13 @@ The difference between them is that waitingFor keeps trying to get a shared obje
  
 ```js
 Semaphore/Mutex.waitingFor(10 /* timeout : second */, function(err, result){
-
+  if(result)
+    // doing something with semaphore/lock
 });
 
 Semaphore/Mutex.observing(10 /* timeout : second */, function(err, result){
-
+  if(result)
+    // doing something or try to accquire/lock
 });
 
 ```
@@ -113,18 +119,20 @@ If callback is omitted, you can use it with promise.
 #### 2.1. get & release method 
 
 **Semaphore.get(key).then(function(result){})**
- - result : 1 for success / 0 for fail to accquire
+ - result : 1 for success / -1 for transaction fail(in this case, it will retry automatically) / 0 for fail to accquire
  
 **Semaphore.rel().then(function(result){})**
  - result : the number of remained semaphore for success
  
 ```js
 semaphore.get().then(function(result){
-
-  if(result)  
-    return semaphore.rel();
+  if(result === 1){  // you should not code like this : if(result) { .. }
+    // doing something with semaphore
+    return Promise.resolve(result);
+  }
 }).then(function(result){
-
+  if(result === 1)
+    return semaphore.rel();
 }).catch(function(e){
 
 });
@@ -150,8 +158,8 @@ mutex.get().then(function(mutexID){
 #### 2.2. wait/observe method
 
 **Semaphore/Mutex.waitingFor(timeout).then(function(result){}).catch(function(err){})**
- - result(semaphore) : 1 for success / 0 for fail to accquire
- - result(mutex) : mutex id for success / null for fail to lock
+ - result(semaphore) : 1 for success / 0 for timedout or errors 
+ - result(mutex) : mutex id for success / null for timedout or errors 
  - err(semaphore/mutex) : timedout error or other errors returned
 
 **Semaphore/Mutex.observing(timeout).then(function(result){}).catch(function(err){})**
@@ -160,13 +168,15 @@ mutex.get().then(function(mutexID){
 
 ```js
 Semaphore/Mutex.waitingFor(10 /* timeout : second */).then(function(result){
-
+  if(result)
+    // doing something with semaphore/lock
 }).catch(function(e){
   // e could be timed out error or others
 });
 
 Semaphore/Mutex.observing(10 /* timeout : second */).then(function(result){
-
+  if(result)
+    // doing something or try to accquire/lock
 }).catch(function(e){
   // e could be timed out error or others;
 });
