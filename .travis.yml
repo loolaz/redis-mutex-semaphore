@@ -14,5 +14,6 @@ node_js:
   - "iojs"
 
 before_script:
-  - "npm i jasmine"
+  - "npm i -g jasmine"
+  - "npm i async"
   - "export jasmine JASMINE_CONFIG_PATH=test/jasmine.json"
