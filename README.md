@@ -130,6 +130,8 @@ semaphore.get().then(function(result){
     // doing something with semaphore
     return Promise.resolve(result);
   }
+  else
+    // doing others or return Promise.reject()
 }).then(function(result){
   if(result === 1)
     return semaphore.rel();
@@ -146,10 +148,14 @@ semaphore.get().then(function(result){
  
 ```js
 mutex.get().then(function(mutexID){
-
-  return Promise.resolve(mutexID);
+  if(mutexID){
+    // doing something with lock
+    return Promise.resolve(mutexID);
+  }
+  else
+    // doing others or return Promise.reject()
 }).then(function(mutexID){
-
+  return mutex.rel(mutexID);
 }).catch(function(e){
 
 });
