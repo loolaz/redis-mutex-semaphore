@@ -7,6 +7,15 @@ npm install redis-mutex-semaphore
 
 ## Constructing Instances
 
+**Semaphore.createSemaphoreClient(key, count, [function callback(err, result){}])**
+**or Semaphore.createSemaphoreClient(key, count).then(function(result){})**
+- result : semaphoreClient object for success / null or undefined for fail
+
+**Semaphore.createMutexClient(key, ttl, [function callback(err, result){}])**
+**or Semaphore.createMutexClient(key, ttl).then(function(result){})**
+
+- result : mutexClient object for success / null or undefined for fail
+
 ```js
 var factory = require('redis-mutex-semaphore')({
   		host: '127.0.0.1',
@@ -18,21 +27,26 @@ var factory = require('redis-mutex-semaphore')({
   
 var factory = require('redis-mutex-semaphore')(redisClient);	
 
-var semaphore= factory.createSemaphore('Key', 0 /* initialCount */, 3 /* maxCount */);
-var mutex = factory.createMutex('Key', 10 /* ttl : second */); 
+factory.createSemaphoreClient('Key', 3 /* semaphore count */); // returns promise if callback is omitted
+factory.createMutexClient('Key', 10 /* ttl : second */);  // returns promise if callback is omitted
+
+var semaphoreClient = factory.getSemaphoreClient('Key'),
+    mutexClient = factory.getMutexClient('Key');
 
 factory.end(); 
 ```
 
-## Usage
+## Method Usage
 
 ### 1. Using CallBack
 
-Once you've constructed an instance of Mutex or Semaphore, you can use it with callbacks.
+Same as creating xxxClient methods, you can call methods with callbacks.
 
 #### get & release method
 
-Semaphore
+**Semaphore.get(key, callback)**
+
+**Semaphore.rel(callback)**
 
 ```js
 semaphore.get(function(err, result){
@@ -43,7 +57,9 @@ semaphore.get(function(err, result){
 });
 ```
 
-Mutex
+**Mutex.get(key, callback)**
+
+**Mutex.rel(callback)**
 
 ```js
 mutex.get(function(err, mutexID){
@@ -54,20 +70,30 @@ mutex.get(function(err, mutexID){
 });
 ```
 
-#### Common
+#### wait/observe method
 
-Both waitingFor and observe methods wait for a shared object being released.
-The difference between them is that waitingFor keeps trying getting a shared object until timeout, but observe just returns when the object observed by observe method is released.
+Both waitingFor and observe methods wait for a shared object to be released.
+The difference between them is that waitingFor keeps trying to get a shared object until timedout, but observing just returns when the observed object is released.
 
+**Semaphore/Mutex.waitingFor(timeout, function callback(err, result){})**
+ - result(semaphore) : 1 for success / 0 for fail to accquire
+ - result(mutex) : mutex id for success / null for fail to lock
+ - err(semaphore/mutex) : timedout error or other errors returned
+ 
+**Semaphore/Mutex.observing(timeout, function callback(err, result){})**
+ - result(semaphore/mutex) : true for success / false for timedout or errors 
+ - err(semaphore/mutex) : timedout error or other errors returned
+ 
 ```js
 instance.waitingFor(10 /* timeout : second */, function(err, result){
   // for mutex, return value will be either mutexID or timedout err
   // for semaphore, return value will be 1 or timedout err
 });
 
-instance.observe(10 /* timeout : second */, function(err, result){
-  // for mutex, return value will be either true or timedout err
-  // for semaphore, return value will be true or timedout err
+instance.observing(10 /* timeout : second */, function(err, result){
+  // return value
+  // success 
+  // false for timedout/other errors
 });
 
 instance.getStaus(function(err, result){
@@ -83,7 +109,9 @@ If callback is omitted, you can use it with promise.
 
 #### get & release method 
 
-Semaphore
+**Semaphore.get(key)**
+
+**Semaphore.rel()**
 
 ```js
 semaphore.get().then(function(result){
@@ -98,7 +126,9 @@ semaphore.get().then(function(result){
 });
 ```
 
-Mutex
+**Mutex.get(key)**
+
+**Mutex.rel(id)**
 
 ```js
 mutex.get().then(function(mutexID){
@@ -111,10 +141,16 @@ mutex.get().then(function(mutexID){
 });
 ```
 
-#### Common
+#### wait/observe method
 
-Both waitingFor and observe methods wait for a shared object being released.
-The difference between them is that waitingFor keeps trying getting a shared object until timeout, but observe just returns when the object observed by observe method is released.
+**Semaphore/Mutex.waitingFor(timeout).then(function(result){}).catch(function(err){})**
+ - result(semaphore) : 1 for success / 0 for fail to accquire
+ - result(mutex) : mutex id for success / null for fail to lock
+ - err(semaphore/mutex) : timedout error or other errors returned
+
+**Semaphore/Mutex.observing(timeout).then(function(result){}).catch(function(err){})**
+ - result(semaphore/mutex) : true for success / false for timedout or errors 
+ - err(semaphore/mutex) : timedout error or other errors returned
 
 ```js
 instance.waitingFor(10 /* timeout : second */).then(function(result){
@@ -124,7 +160,7 @@ instance.waitingFor(10 /* timeout : second */).then(function(result){
   // e could be timed out error or others
 });
 
-instance.observe(10 /* timeout : second */).then(function(result){
+instance.observing(10 /* timeout : second */).then(function(result){
   // for mutex, return value will be either true
   // for semaphore, return value will be true
 }).catch(function(e){
@@ -137,3 +173,14 @@ instance.getStaus().then(function(result){
   // for semaphore, value means the number of semaphore
 });
 ```
+
+## Others
+
+**Checking expiry of mutex**
+
+Mutex.on('expired', function(expired_id){});
+
+**Reset semaphore/mutex**
+
+Semaphore.reset(count[,callback])
+Mutex.reset([callbakc])
