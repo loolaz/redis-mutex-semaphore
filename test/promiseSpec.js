@@ -9,11 +9,16 @@ redis= require('redis'),
 	testSemaphoreKey = 'testObjectSem',
 	testMutexKey1 = 'testObjectMutex1',
 	testMutexKey2 = 'testObjectMutex2',
-	options = {
+	/*options = {
 		host: '127.0.0.1',
 		port: 6379,
 		db: 1
-	};
+	};*/
+	options = {
+				host: 'jp-cmm-navy-l.knowre.com',
+				pass: 'j#m#v#DYDXOR',
+				db: 5
+			};
 
 describe('redis shared object test', function(){
 	var RedisSharedObject = require('../lib');
@@ -86,7 +91,7 @@ describe('redis shared object test', function(){
 				});					
 			},			
 			function(callback){
-				redisSemaphore1.waitingFor(6).then(function(result){
+				redisSemaphore1.waitingFor(14).then(function(result){
 					console.log('tried and finally got one(1) : ' + result);
 				}).catch(function(err){
 					console.log(err);
@@ -95,7 +100,7 @@ describe('redis shared object test', function(){
 			}
 			,
 			function(callback){
-				redisSemaphore1.waitingFor(6).then(function(result){
+				redisSemaphore1.waitingFor(14).then(function(result){
 					console.log('tried and finally got one(2) : ' + result);
 				}).catch(function(err){
 					console.log(err);
@@ -103,7 +108,7 @@ describe('redis shared object test', function(){
 				callback(null, true);				
 			},
 			function(callback){
-				redisSemaphore1.waitingFor(6).then(function(result){
+				redisSemaphore1.waitingFor(14).then(function(result){
 					console.log('tried and finally got one(3) : ' + result);
 				}).catch(function(err){
 					console.log(err);
@@ -111,7 +116,7 @@ describe('redis shared object test', function(){
 				callback(null, true);					
 			},
 			function(callback){
-				redisSemaphore2.waitingFor(6).then(function(result){
+				redisSemaphore2.waitingFor(14).then(function(result){
 					console.log('tried and finally got one(4) : ' + result);
 				}).catch(function(err){
 					console.log(err);
@@ -119,7 +124,7 @@ describe('redis shared object test', function(){
 				callback(null, true);			
 			},
 			function(callback){
-				redisSemaphore2.waitingFor(6).then(function(result){
+				redisSemaphore2.waitingFor(14).then(function(result){
 					console.log('tried and finally got one(5) : ' + result);
 				}).catch(function(err){
 					console.log(err);
@@ -127,7 +132,7 @@ describe('redis shared object test', function(){
 				callback(null, true);		
 			},
 			function(callback){
-				redisSemaphore2.waitingFor(6).then(function(result){
+				redisSemaphore2.waitingFor(14).then(function(result){
 					console.log('tried and finally got one(6) : ' + result);
 				}).catch(function(err){
 					console.log(err);
@@ -135,7 +140,7 @@ describe('redis shared object test', function(){
 				callback(null, true);			
 			},
 			function(callback){
-				redisSemaphore2.observing(6).then(function(result){
+				redisSemaphore2.observing(14).then(function(result){
 					console.log('just waited, and woke up');
 					callback(null, result);
 				}).catch(function(err){
@@ -176,7 +181,7 @@ describe('redis shared object test', function(){
 							done();
 						}
 					);
-				}, 3000);
+				}, 8000);
 			}
 		);
 
@@ -247,7 +252,7 @@ describe('redis shared object test', function(){
 							done();
 						}
 					);
-				}, 3000);
+				}, 10000);
 			}
 		);
 
