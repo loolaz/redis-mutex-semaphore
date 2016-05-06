@@ -14,4 +14,4 @@ node_js:
   - "iojs"
 
   before_script:
-    - "npm i jasmine --dev"
+    - "npm i jasmine"
