@@ -1,5 +1,7 @@
 # redis-mutex-semaphore
-This is simple mutex and semaphore library using redis.
+This is a mutex and semaphore library which is very simply implemented by using some basic redis commands such as incr/decr(semaphore) and setnx(mutex).
+ - pros : you can pass existing redis connection and simply use semaphore and mutex
+ - cons : of course, may not be appropriate for applications having complicated concurrency requirements..
 
 ```sh
 npm install redis-mutex-semaphore
@@ -17,6 +19,8 @@ npm install redis-mutex-semaphore
 **or Mutex.createMutexClient(key, ttl).then(function(result){})**
 
 - result : mutexClient object for success / null or undefined for fail
+
+**Whenever createXXXClient method is called, the redis key that you have passed through is also reset. So please be careful that you do not lose any context of these objects by mistakenly calling this method with the same key again in other places(other codes in the same process/other processes/other machines) while using the mutex/semaphore with the key.**
 
 ```js
 var factory = require('redis-mutex-semaphore')({
