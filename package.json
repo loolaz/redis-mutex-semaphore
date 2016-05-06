@@ -24,7 +24,7 @@
     "javascript"
   ],
   "scripts": {
-    "test": "jasmine ./test/*"
+    "test": "jasmine ./test/*[sS]pec.js"
   },
   "license": "MIT"
 }

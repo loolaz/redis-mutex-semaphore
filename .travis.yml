@@ -15,3 +15,4 @@ node_js:
 
   before_script:
     - "npm i jasmine"
+    - "export jasmine JASMINE_CONFIG_PATH=test/jasmine.json"
