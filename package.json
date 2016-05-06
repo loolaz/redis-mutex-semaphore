@@ -8,7 +8,10 @@
     "uuid": ">=2.0.0",
     "bluebird": "3.3.5"
   },
-  "repository": {
+  "devDependencies" : {
+    "jasmine" : "latest"
+  },
+  "repository" : {
     "type": "git",
     "url": "git@github.com:loolaz/redis-mutex-semaphore.git"
   },
@@ -21,7 +24,7 @@
     "javascript"
   ],
   "scripts": {
-    "test": "./node_modules/.bin/jasmine ./test/*"
+    "test": "jasmine ./test/*"
   },
   "license": "MIT"
 }
