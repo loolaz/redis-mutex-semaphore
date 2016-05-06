@@ -14,3 +14,6 @@ before_script:
   - "npm i -g jasmine"
   - "npm i async"
   - "export jasmine JASMINE_CONFIG_PATH=test/jasmine.json"
+  
+services:
+  - redis-server
