@@ -8,7 +8,7 @@ redis= require('redis'),
 	muid,
 	testSemaphoreKey = 'testObjectSem',
 	testMutexKey1 = 'testObjectMutex1',
-	testMutexKey2 = 'testObjectMutex2'; 
+	testMutexKey2 = 'testObjectMutex2';
 
 describe('complicated scenario test(promise)', function(){
 	var RedisSharedObject = require('../lib');
