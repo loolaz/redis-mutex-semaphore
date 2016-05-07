@@ -12,22 +12,26 @@ var async = require('async'),
 		db: 1
 	};
 
-describe('redis shared object test', function(){
+describe('basic scenario test', function(){
 	var RedisSharedObject = require('../lib');
 	var initCount = 0;
 	it('initialize', function(done){
 
-		for(var i = 0; i < 50; i++){
+		for(var i = 0; i < 30; i++){
 			var factory = RedisSharedObject(options);
 			factory.createSemaphoreClient(testSemaphoreKey, 3).then(function(result){
 				++initCount;
-				if(initCount === 100)
+				if(initCount === 60){
+					console.log('0. Object factories initialized');
 					done();
+				}
 			});
 			factory.createMutexClient(testMutexKey, 10).then(function(result){
 				++initCount;
-				if(initCount === 100)
+				if(initCount === 60){
+					console.log('0. Object factories initialized');
 					done();
+				}
 			});
 			factoryList.push(factory);
 		}
@@ -36,22 +40,20 @@ describe('redis shared object test', function(){
 	it('semaphore callback', function(done){
 		var j = 0;
 		var s = Date.now();
-		for(var i =0 ; i < 50 ; i++){
+		for(var i =0 ; i < 30 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.waitingFor(100, function(err, result){
 				if(result){
 					j++;
-					console.log(' accquire : (' + j + ')');
-					if(j === 50){
-						console.log('time : ' + (Date.now() - s));
+					console.log('... accquire : (' + j + ')');
+					if(j === 30){
+						console.log('1. Testing semaphore with callback has been done by ' + (Date.now() - s));
 						done();
 					}
 					setTimeout(function(){
 						redisSemaphoreClient.rel(function(err, result){
 							if(err)
-								console.log(err);
-							else
-								console.log('release : ' + result);
+								console.log('... err : ' + err);
 						});
 					}, 500); 					
 				}
@@ -68,23 +70,21 @@ describe('redis shared object test', function(){
 	it('semaphore promise', function(done){
 		var j = 0;
 		var s = Date.now();
-		for(var i =0 ; i < 50 ; i++){
+		for(var i =0 ; i < 30 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.waitingFor(100).then(function(result){
 				if(result){
 					j++;
-					console.log(' accquire : (' + j + ')');
-					if(j === 50){
-						console.log('time : ' + (Date.now() - s));
+					console.log('... accquire : (' + j + ')');
+					if(j === 30){
+						console.log('2. Testing semaphore with promise has been done by ' + (Date.now() - s));
 						done();
 					}					
 				}
 			}).delay(500).then(function(){
-				return redisSemaphoreClient.rel().then(function(result){
-					console.log('release : ' + result);
-				});
+				return redisSemaphoreClient.rel();
 			}).catch(function(err){
-				console.log('err : ' + err);
+				console.log('... err : ' + err);
 			});
 
 		}
@@ -93,22 +93,20 @@ describe('redis shared object test', function(){
 	it('mutex callback', function(done){
 		var j = 0;
 		var s = Date.now();
-		for(var i =0 ; i < 50 ; i++){
+		for(var i =0 ; i < 30 ; i++){
 			var redisMutexClient = factoryList[i].getMutexClient(testMutexKey);
 			redisMutexClient.waitingFor(100, function(err, id){
 				if(id){
 					j++;
-					console.log(' lock(' + j + ') : ' + id);
-					if(j === 50){
-						console.log('time : ' + (Date.now() - s));
+					console.log('... lock(' + j + ') : ' + id);
+					if(j === 30){
+						console.log('3. Testing mutex with callback has been done by ' + (Date.now() - s));
 						done();
 					}
 					setTimeout(function(){
 						redisMutexClient.rel(id, function(err, result){
 							if(err)
-								console.log('err : ' + err);
-							else
-								console.log('unlock : ' + result);
+								console.log('... err : ' + err);
 						});
 					}, 500); 					
 				}
@@ -125,24 +123,22 @@ describe('redis shared object test', function(){
 	it('mutex promise', function(done){
 		var j = 0;
 		var s = Date.now();
-		for(var i =0 ; i < 50 ; i++){
+		for(var i =0 ; i < 30 ; i++){
 			var redisMutexClient = factoryList[i].getMutexClient(testMutexKey);
 			redisMutexClient.waitingFor(100).then(function(id){
 				if(id){
 					j++;
-					console.log(' lock : (' + j + ') : ' + id);
-					if(j === 50){
-						console.log('time : ' + (Date.now() - s));
+					console.log('... lock : (' + j + ') : ' + id);
+					if(j === 30){
+						console.log('4. Testing mutex with promise has been done by ' + (Date.now() - s));
 						done();
 					}					
 					return Promise.resolve(id);
 				}
 			}).delay(500).then(function(id){
-				return redisMutexClient.rel(id).then(function(result){
-					console.log('unlock : ' + result);
-				});
+				return redisMutexClient.rel(id).then();
 			}).catch(function(err){
-				console.log('err : ' + err);
+				console.log('... err : ' + err);
 			});
 
 		}
@@ -150,9 +146,10 @@ describe('redis shared object test', function(){
 
 	it('finalize', function(done){
 		setTimeout(function(){
-			for(var i = 0; i < 50; i++){
+			for(var i = 0; i < 30; i++){
 				factoryList[i].end();
 			}
+			console.log('5. Object factories have been finalized');
 			done();
 		}, 3000);
 	}, 10000);

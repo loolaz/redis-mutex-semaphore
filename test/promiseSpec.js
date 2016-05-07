@@ -15,7 +15,7 @@ redis= require('redis'),
 		db: 1
 	}; 
 
-describe('redis shared object test', function(){
+describe('complicated scenario test(promise)', function(){
 	var RedisSharedObject = require('../lib');
 
 	it('initialize', function(done){
@@ -28,55 +28,42 @@ describe('redis shared object test', function(){
 		redisSharedObject2.createSemaphoreClient(testSemaphoreKey, 3);
 		redisSharedObject2.createMutexClient(testMutexKey1, 10);
 		setTimeout( function(){ 
+			console.log('0. Complicated scenario - promise version - test initialized');
 			done(); 
 		}, 3000);
 	});
 
-	it('initial status', function(done){
-		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey);
-		redisSemaphore1.getStatus(function(err, result){
-			console.log('initial status');
-			console.log(result);
-			done();
-		});
-	});
-
 	it('get three semaphore sequentially', function(done){
+		console.log('1. Three clinets should accquire semaphores in sequence');
 		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey);
 		redisSemaphore1.get()
 		.then(function(result){
-			if(result)
-				console.log('first semaphore : ' + result);
 		}).then(function(){ 
 			return redisSemaphore1.get();
 		}).then(function(result){
-			if(result)
-				console.log('second semaphore : ' + result)
 		}).then(function(){
 			return redisSemaphore1.get();
 		}).then(function(result){
-			if(result)
-				console.log('third semaphore : ' + result);
-
 			redisSemaphore1.getStatus(function(err, result){
-				console.log('consumed three semaphore');
-				console.log(result);
+				expect(result.value).toEqual(0);
+				console.log('... accquired three semaphore');
 				done();
 			});
 
 		}).catch(function(err){
-			console.log('error :' + err);
+			console.log('... error :' + err);
 			done();
 		});
 	}, 6000);
 
 	it('release three semaphore, but six will compete to get them..', function(done){
+		console.log('2. Other three clinet should accquire semaphores, and the other three still will wait')
 		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey),
 			redisSemaphore2 = redisSharedObject2.getSemaphoreClient(testSemaphoreKey);		
 		async.parallel([
 			function(callback){
 				redisSemaphore1.rel().then(function(result){
-					console.log('release result(1) : ' + result);
+					console.log('... released semaphore, current count : ' + result);
 					callback(null, result);
 				}).catch(function(err){
 					console.log(err);
@@ -85,7 +72,7 @@ describe('redis shared object test', function(){
 			},
 			function(callback){
 				redisSemaphore1.rel().then(function(result){
-					console.log('release result(2) : ' + result);
+					console.log('... released semaphore, current count : ' + result);
 					callback(null, result);
 				}).catch(function(err){
 					console.log(err);
@@ -94,7 +81,7 @@ describe('redis shared object test', function(){
 			},
 			function(callback){
 				redisSemaphore2.rel().then(function(result){
-					console.log('release result(3) : ' + result);
+					console.log('... released semaphore, current count : ' + result);
 					callback(null, result);
 				}).catch(function(err){
 					console.log(err);
@@ -103,7 +90,7 @@ describe('redis shared object test', function(){
 			},			
 			function(callback){
 				redisSemaphore1.waitingFor(14).then(function(result){
-					console.log('tried and finally got one(1) : ' + result);
+					console.log('... accquired semaphore(1)');
 				}).catch(function(err){
 					console.log(err);
 				});	
@@ -112,7 +99,7 @@ describe('redis shared object test', function(){
 			,
 			function(callback){
 				redisSemaphore1.waitingFor(14).then(function(result){
-					console.log('tried and finally got one(2) : ' + result);
+					console.log('... accquired semaphore(2)');
 				}).catch(function(err){
 					console.log(err);
 				});	
@@ -120,7 +107,7 @@ describe('redis shared object test', function(){
 			},
 			function(callback){
 				redisSemaphore1.waitingFor(14).then(function(result){
-					console.log('tried and finally got one(3) : ' + result);
+					console.log('... accquired semaphore(3)');
 				}).catch(function(err){
 					console.log(err);
 				});	
@@ -128,7 +115,7 @@ describe('redis shared object test', function(){
 			},
 			function(callback){
 				redisSemaphore2.waitingFor(14).then(function(result){
-					console.log('tried and finally got one(4) : ' + result);
+					console.log('... accquired semaphore(4)');
 				}).catch(function(err){
 					console.log(err);
 				});		
@@ -136,7 +123,7 @@ describe('redis shared object test', function(){
 			},
 			function(callback){
 				redisSemaphore2.waitingFor(14).then(function(result){
-					console.log('tried and finally got one(5) : ' + result);
+					console.log('... accquired semaphore(5)');
 				}).catch(function(err){
 					console.log(err);
 				});		
@@ -144,7 +131,7 @@ describe('redis shared object test', function(){
 			},
 			function(callback){
 				redisSemaphore2.waitingFor(14).then(function(result){
-					console.log('tried and finally got one(6) : ' + result);
+					console.log('... accquired semaphore(6)');
 				}).catch(function(err){
 					console.log(err);
 				});		
@@ -152,7 +139,7 @@ describe('redis shared object test', function(){
 			},
 			function(callback){
 				redisSemaphore2.observing(14).then(function(result){
-					console.log('just waited, and woke up');
+					console.log('... finished observing');
 					callback(null, result);
 				}).catch(function(err){
 					console.log(err);
@@ -169,7 +156,6 @@ describe('redis shared object test', function(){
 					async.parallel([
 						function(callback){
 							redisSemaphore1.getStatus().then(function(result){
-								console.log(result);
 								firstCount += result.value;
 								firstWaiting += result.waiting;
 								firstObserving += result.observing;
@@ -178,7 +164,6 @@ describe('redis shared object test', function(){
 						},
 						function(callback){
 							redisSemaphore2.getStatus().then(function(result){
-								console.log(result);
 								secondCount += result.value;
 								secondWaiting += result.waiting;
 								secondObserving += result.observing;
@@ -201,6 +186,7 @@ describe('redis shared object test', function(){
 	}, 20000);
 
 	it('release three semaphores', function(done){
+		console.log('3. Rest of clinets should accquire semaphores');	
 		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey),
 			redisSemaphore2 = redisSharedObject2.getSemaphoreClient(testSemaphoreKey);		
 		async.parallel([
@@ -209,7 +195,7 @@ describe('redis shared object test', function(){
 					if(err)
 						console.log(err);
 					else
-						console.log('relSem : ' + sem);
+						console.log('... released semaphore, current count : ' + sem);
 					callback(err, sem);
 				});					
 			},
@@ -218,7 +204,7 @@ describe('redis shared object test', function(){
 					if(err)
 						console.log(err);
 					else
-						console.log('relSem : ' + sem);
+						console.log('... released semaphore, current count : ' + sem);
 					callback(err, sem);
 				});					
 			},
@@ -227,7 +213,7 @@ describe('redis shared object test', function(){
 					if(err)
 						console.log(err);
 					else
-						console.log('relSem : ' + sem);
+						console.log('... released semaphore, current count : ' + sem);
 					callback(err, sem);
 				});					
 			}
@@ -273,12 +259,13 @@ describe('redis shared object test', function(){
 
 
 	it('get mutex and another waits for being released', function(done){
+		console.log('4. One should get mutex, one should fail to lock, one will wait for mutext to be unlocked, and one will be timed out while waiting');
 		var redisMutex1 = redisSharedObject1.getMutexClient(testMutexKey1),
 			redisMutex2 = redisSharedObject2.getMutexClient(testMutexKey1);
 		async.parallel([
 			function(callback){
 				redisMutex1.get().then(function(result){
-					console.log('got mutex(1) : ' + result);
+					console.log('... got mutex(1) : ' + result);
 					if(result)
 						muid = result;
 					callback(null, result);
@@ -289,7 +276,7 @@ describe('redis shared object test', function(){
 			},
 			function(callback){
 				redisMutex2.get().then(function(result){
-					console.log('got mutex(2) : ' + result);
+					console.log('... got mutex(2) : ' + result);
 					if(result)
 						muid = result;
 					callback(null, result);
@@ -300,31 +287,31 @@ describe('redis shared object test', function(){
 			},
 			function(callback){
 				redisMutex1.observing(8).then(function(released){
-					console.log('sucessfully observed releasing : ' + released);
+					console.log('... finished observing');
 				}).catch(function(err){
-					console.log('err while observing : ' + err);
+					console.log('... err while observing : ' + err);
 				});
 				callback(null, true);					
 			},
 			function(callback){
 				redisMutex2.waitingFor(1).then(function(result){
-					console.log('got mutex(3) : ' + result);
+					console.log('... got mutex(3) : ' + result);
 					if(result)
 						muid = result;
 				}).catch(function(err){
 					
-					console.log('err while waiting(3) : ' + err);
+					console.log('... err while waiting(3) : ' + err);
 					expect(err.message).toEqual('timedout');
 				});
 				callback(null, true);					
 			},
 			function(callback){
 				redisMutex1.waitingFor(8).then(function(result){
-					console.log('got mutex(4) : ' + result);
+					console.log('... got mutex(4) : ' + result);
 					if(result)
 						muid = result;
 				}).catch(function(err){
-					console.log('err while waiting(4) : ' + err);
+					console.log('... err while waiting(4) : ' + err);
 				});
 				callback(null, true);					
 			}
@@ -367,15 +354,18 @@ describe('redis shared object test', function(){
 	}, 20000);
 
 	it('release mutex', function(done){
-		var redisMutex1 = redisSharedObject1.getMutexClient(testMutexKey1),
+		console.log('5. First unlocking try should fail due to incorrect mutex id, but second try should succeed. In result, one can get a lock finally');		var redisMutex1 = redisSharedObject1.getMutexClient(testMutexKey1),
 			redisMutex2 = redisSharedObject2.getMutexClient(testMutexKey1);		
 		async.parallel([
 			function(callback){
 				redisMutex1.rel('wrong_id').catch(function(err){
-					console.log('err while releasing : ' + err);
+					expect(err).not.toBe(null);
+					console.log('... err while releasing : ' + err);
 					return redisMutex1.rel(muid);
 				}).then(function(result){
-					console.log('released : ' + result);
+					expect(result).toEqual(true);
+					if(result)
+						console.log('... unlocked mutex');
 					callback(null, result);
 				});					
 			}
@@ -417,20 +407,21 @@ describe('redis shared object test', function(){
 	}, 20000);
 
 	it('this mutex will be expired', function(done){
+		console.log('6. Mutex should be expired.');
 		var toBeExpiredSoonPromise = redisSharedObject1.createMutexClient('toBeExpired', 3);
 
 		toBeExpiredSoonPromise.then(function(mutexClient){
 
 			mutexClient.on('expired', function(expired_id){
-				console.log(expired_id + ' has been expired');
+				console.log('... ' + expired_id + ' has been expired');
 				expect(muid).toEqual(expired_id);
 			});
 
 			mutexClient.get().then(function(result){
-				console.log('got mutex(5) : ' + result);
+				console.log('... got mutex(5) : ' + result);
 				muid = result;
 			}).catch(function(err){
-				console.log('err while waiting(5) : ' + err);
+				console.log('... err while waiting(5) : ' + err);
 			});
 			setTimeout(function(){
 				redisSharedObject1.end();
