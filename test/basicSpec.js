@@ -20,6 +20,8 @@ describe('basic scenario test', function(){
 					console.log('0. Object factories initialized');
 					done();
 				}
+			}).catch(function(err){
+				console.log(err);
 			});
 			factory.createMutexClient(testMutexKey, 10).then(function(result){
 				++initCount;
@@ -27,6 +29,8 @@ describe('basic scenario test', function(){
 					console.log('0. Object factories initialized');
 					done();
 				}
+			}).catch(function(err){
+				console.log(err);
 			});
 			factoryList.push(factory);
 		}
