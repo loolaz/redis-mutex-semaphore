@@ -441,11 +441,10 @@ describe('complicated scenario test(callback)', function(){
 
 
 	it('this mutex will be expired', function(done){
-		console.log('6. Mutex should be expired.');
-		redisSharedObject1.createMutexClient('toBeExpired', 3, function(err, toBeExpiredSoon){
+		console.log('6. Mutex should be expired, and a waiting client should get another');
+		redisSharedObject1.createMutexClient('toBeExpired', 2, function(err, toBeExpiredSoon){
 			toBeExpiredSoon.on('expired', function(expired_id){
 				console.log('... ' + expired_id + ' has been expired');
-				expect(muid).toEqual(expired_id);
 			});	
 
 			toBeExpiredSoon.get(function(err, result){
@@ -454,6 +453,12 @@ describe('complicated scenario test(callback)', function(){
 				else{
 					console.log('... got mutex(5) : ' + result);
 					muid = result;
+					expect(result).not.toBe(null);
+					toBeExpiredSoon.waitingFor(10, function(err, result){
+						expect(result).not.toBe(null);
+						if(result)
+							console.log('... previous lock has been expired, and got new one : ' + result);
+					});
 				}
 				setTimeout(function(){
 					redisSharedObject1.end();

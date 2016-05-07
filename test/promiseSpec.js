@@ -407,27 +407,34 @@ describe('complicated scenario test(promise)', function(){
 	}, 20000);
 
 	it('this mutex will be expired', function(done){
-		console.log('6. Mutex should be expired.');
-		var toBeExpiredSoonPromise = redisSharedObject1.createMutexClient('toBeExpired', 3);
+		console.log('6. Mutex should be expired, and a waiting client should get another');
+		var toBeExpiredSoonPromise = redisSharedObject1.createMutexClient('toBeExpired', 2);
 
 		toBeExpiredSoonPromise.then(function(mutexClient){
 
 			mutexClient.on('expired', function(expired_id){
 				console.log('... ' + expired_id + ' has been expired');
-				expect(muid).toEqual(expired_id);
 			});
 
-			mutexClient.get().then(function(result){
-				console.log('... got mutex(5) : ' + result);
-				muid = result;
-			}).catch(function(err){
-				console.log('... err while waiting(5) : ' + err);
-			});
 			setTimeout(function(){
 				redisSharedObject1.end();
 				redisSharedObject2.end();
 				done();
 			}, 5000);
+
+			return mutexClient.get().then(function(result){
+				console.log('... got mutex(5) : ' + result);
+				muid = result;
+			}).then(function(){
+				return mutexClient.waitingFor(10).then(function(result){
+					expect(result).not.toBe(null);
+					if(result)
+						console.log('... previous lock has been expired, and got new one : ' + result);
+				});				
+			}).catch(function(err){
+				console.log('... err while waiting(5) : ' + err);
+			});
+
 
 		});
 		
