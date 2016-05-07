@@ -8,19 +8,14 @@ redis= require('redis'),
 	muid,
 	testSemaphoreKey = 'testObjectSem',
 	testMutexKey1 = 'testObjectMutex1',
-	testMutexKey2 = 'testObjectMutex2',
-	options = {
-		host: '127.0.0.1',
-		port: 6379,
-		db: 1
-	}; 
+	testMutexKey2 = 'testObjectMutex2'; 
 
 describe('complicated scenario test(promise)', function(){
 	var RedisSharedObject = require('../lib');
 
 	it('initialize', function(done){
-		redisSharedObject1 = RedisSharedObject(options);
-		redisSharedObject2 = RedisSharedObject(options);
+		redisSharedObject1 = RedisSharedObject();
+		redisSharedObject2 = RedisSharedObject();
 
 		redisSharedObject1.createSemaphoreClient(testSemaphoreKey, 3);
 		redisSharedObject1.createMutexClient(testMutexKey1, 10);
@@ -409,33 +404,33 @@ describe('complicated scenario test(promise)', function(){
 	it('this mutex will be expired', function(done){
 		console.log('6. Mutex should be expired, and a waiting client should get another');
 		var toBeExpiredSoonPromise = redisSharedObject1.createMutexClient('toBeExpired', 2);
+		var watingClientPromise = redisSharedObject2.createMutexClient('toBeExpired', 2, function(err, waitingClient){
+			
+			toBeExpiredSoonPromise.then(function(mutexClient){
+				mutexClient.on('expired', function(expired_id){
+					console.log('... ' + expired_id + ' has been expired');
+				});
 
-		toBeExpiredSoonPromise.then(function(mutexClient){
+				setTimeout(function(){
+					redisSharedObject1.end();
+					redisSharedObject2.end();
+					done();
+				}, 5000);
 
-			mutexClient.on('expired', function(expired_id){
-				console.log('... ' + expired_id + ' has been expired');
+				return mutexClient.get().then(function(result){
+					console.log('... got mutex(5) : ' + result);
+					muid = result;
+				}).then(function(){
+					return waitingClient.waitingFor(10).then(function(result){
+						expect(result).not.toBe(null);
+						if(result)
+							console.log('... previous lock has been expired, and got new one : ' + result);
+					});				
+				}).catch(function(err){
+					console.log('... err while waiting(5) : ' + err);
+				});
+
 			});
-
-			setTimeout(function(){
-				redisSharedObject1.end();
-				redisSharedObject2.end();
-				done();
-			}, 5000);
-
-			return mutexClient.get().then(function(result){
-				console.log('... got mutex(5) : ' + result);
-				muid = result;
-			}).then(function(){
-				return mutexClient.waitingFor(10).then(function(result){
-					expect(result).not.toBe(null);
-					if(result)
-						console.log('... previous lock has been expired, and got new one : ' + result);
-				});				
-			}).catch(function(err){
-				console.log('... err while waiting(5) : ' + err);
-			});
-
-
 		});
 		
 	}, 20000);

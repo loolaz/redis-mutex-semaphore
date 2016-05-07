@@ -5,30 +5,25 @@ var async = require('async'),
 	redis= require('redis'),
 	testSemaphoreKey = 'testObjectSem',
 	testMutexKey = 'testObjectMutex',
-	factoryList = [],
-	options = {
-		host: '127.0.0.1',
-		port: 6379,
-		db: 1
-	};
+	factoryList = [];
 
 describe('basic scenario test', function(){
 	var RedisSharedObject = require('../lib');
 	var initCount = 0;
 	it('initialize', function(done){
 
-		for(var i = 0; i < 30; i++){
-			var factory = RedisSharedObject(options);
+		for(var i = 0; i < 10; i++){
+			var factory = RedisSharedObject();
 			factory.createSemaphoreClient(testSemaphoreKey, 3).then(function(result){
 				++initCount;
-				if(initCount === 60){
+				if(initCount === 20){
 					console.log('0. Object factories initialized');
 					done();
 				}
 			});
 			factory.createMutexClient(testMutexKey, 10).then(function(result){
 				++initCount;
-				if(initCount === 60){
+				if(initCount === 20){
 					console.log('0. Object factories initialized');
 					done();
 				}
@@ -40,13 +35,13 @@ describe('basic scenario test', function(){
 	it('semaphore callback', function(done){
 		var j = 0;
 		var s = Date.now();
-		for(var i =0 ; i < 30 ; i++){
+		for(var i =0 ; i < 10 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.waitingFor(100, function(err, result){
 				if(result){
 					j++;
 					console.log('... accquire : (' + j + ')');
-					if(j === 30){
+					if(j === 10){
 						console.log('1. Testing semaphore with callback has been done by ' + (Date.now() - s));
 						done();
 					}
@@ -70,13 +65,13 @@ describe('basic scenario test', function(){
 	it('semaphore promise', function(done){
 		var j = 0;
 		var s = Date.now();
-		for(var i =0 ; i < 30 ; i++){
+		for(var i =0 ; i < 10 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.waitingFor(100).then(function(result){
 				if(result){
 					j++;
 					console.log('... accquire : (' + j + ')');
-					if(j === 30){
+					if(j === 10){
 						console.log('2. Testing semaphore with promise has been done by ' + (Date.now() - s));
 						done();
 					}					
@@ -93,13 +88,13 @@ describe('basic scenario test', function(){
 	it('mutex callback', function(done){
 		var j = 0;
 		var s = Date.now();
-		for(var i =0 ; i < 30 ; i++){
+		for(var i =0 ; i < 10 ; i++){
 			var redisMutexClient = factoryList[i].getMutexClient(testMutexKey);
 			redisMutexClient.waitingFor(100, function(err, id){
 				if(id){
 					j++;
 					console.log('... lock(' + j + ') : ' + id);
-					if(j === 30){
+					if(j === 10){
 						console.log('3. Testing mutex with callback has been done by ' + (Date.now() - s));
 						done();
 					}
@@ -123,13 +118,13 @@ describe('basic scenario test', function(){
 	it('mutex promise', function(done){
 		var j = 0;
 		var s = Date.now();
-		for(var i =0 ; i < 30 ; i++){
+		for(var i =0 ; i < 10 ; i++){
 			var redisMutexClient = factoryList[i].getMutexClient(testMutexKey);
 			redisMutexClient.waitingFor(100).then(function(id){
 				if(id){
 					j++;
 					console.log('... lock : (' + j + ') : ' + id);
-					if(j === 30){
+					if(j === 10){
 						console.log('4. Testing mutex with promise has been done by ' + (Date.now() - s));
 						done();
 					}					
@@ -146,12 +141,14 @@ describe('basic scenario test', function(){
 
 	it('finalize', function(done){
 		setTimeout(function(){
-			for(var i = 0; i < 30; i++){
+			for(var i = 0; i < 10; i++){
 				factoryList[i].end();
 			}
+		}, 6000);
+		setTimeout(function(){
 			console.log('5. Object factories have been finalized');
 			done();
-		}, 3000);
-	}, 10000);
+		}, 6000);
+	}, 14000);
 
 });

@@ -6,18 +6,13 @@ var async = require('async'),
 	muid,
 	testSemaphoreKey = 'testObjectSem',
 	testMutexKey1 = 'testObjectMutex1',
-	testMutexKey2 = 'testObjectMutex2',
-	options = {
-		host: '127.0.0.1',
-		port: 6379,
-		db: 1
-	};
+	testMutexKey2 = 'testObjectMutex2';
 
 describe('complicated scenario test(callback)', function(){
 	var RedisSharedObject = require('../lib');
 	it('initialize', function(done){
-		redisSharedObject1 = RedisSharedObject(options);
-		redisSharedObject2 = RedisSharedObject(options);
+		redisSharedObject1 = RedisSharedObject();
+		redisSharedObject2 = RedisSharedObject();
 
 		redisSharedObject1.createSemaphoreClient(testSemaphoreKey, 3);
 		redisSharedObject1.createMutexClient(testMutexKey1, 10);
@@ -442,31 +437,33 @@ describe('complicated scenario test(callback)', function(){
 
 	it('this mutex will be expired', function(done){
 		console.log('6. Mutex should be expired, and a waiting client should get another');
-		redisSharedObject1.createMutexClient('toBeExpired', 2, function(err, toBeExpiredSoon){
-			toBeExpiredSoon.on('expired', function(expired_id){
-				console.log('... ' + expired_id + ' has been expired');
-			});	
+		redisSharedObject2.createMutexClient('toBeExpired', 2, function(err, waitingClient){
+			redisSharedObject1.createMutexClient('toBeExpired', 2, function(err, toBeExpiredSoon){
+				toBeExpiredSoon.on('expired', function(expired_id){
+					console.log('... ' + expired_id + ' has been expired');
+				});	
 
-			toBeExpiredSoon.get(function(err, result){
-				if(err)
-					console.log('... err while waiting(5) : ' + err);
-				else{
-					console.log('... got mutex(5) : ' + result);
-					muid = result;
-					expect(result).not.toBe(null);
-					toBeExpiredSoon.waitingFor(10, function(err, result){
+				toBeExpiredSoon.get(function(err, result){
+					if(err)
+						console.log('... err while waiting(5) : ' + err);
+					else{
+						console.log('... got mutex(5) : ' + result);
+						muid = result;
 						expect(result).not.toBe(null);
-						if(result)
-							console.log('... previous lock has been expired, and got new one : ' + result);
-					});
-				}
-				setTimeout(function(){
-					redisSharedObject1.end();
-					redisSharedObject2.end();
-					done();
-				}, 5000);
-			});
+						waitingClient.waitingFor(10, function(err, result){
+							expect(result).not.toBe(null);
+							if(result)
+								console.log('... previous lock has been expired, and got new one : ' + result);
+						});
+					}
+					setTimeout(function(){
+						redisSharedObject1.end();
+						redisSharedObject2.end();
+						done();
+					}, 5000);
+				});
 
+			});
 		});
 	}, 20000); 
 
