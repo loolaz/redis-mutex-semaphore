@@ -43,26 +43,10 @@ describe('complicated scenario test(callback)', function(){
 					redisSemaphore2.observing(6, function(err, result){
 						console.log('... finished observing(1)');
 					});						
-					async.parallel([
-						function(callback){
-							redisSemaphore1.getStatus(function(err, result){
-								expect(result.value).toEqual(0);
-								callback(null, true);
-							});
-						},
-						function(callback){
-							redisSemaphore2.getStatus(function(err, result){
-								expect(result.value).toEqual(0);
-								console.log('... accquired three semaphore');
-								callback(null, true);
-							});
-						}
-						],
-						function(err, result){
-							
-							done();
-						}
-					);
+					redisSemaphore1.getStatus(function(err, result){							
+						expect(result.value).toEqual(0);
+						done();
+					});
 
 				});
 			});
@@ -163,39 +147,13 @@ describe('complicated scenario test(callback)', function(){
 			}
 			],function(err, result){
 				setTimeout( function(){ 
-					var firstCount = 0,
-						firstWaiting = 0,
-						firstObserving = 0,
-						secondCount = 0,
-						secondWaiting = 0,
-						secondObserving = 0;
-					async.parallel([
-						function(callback){
-							redisSemaphore1.getStatus(function(err, result){
-								firstCount += result.value;
-								firstWaiting += result.waiting;
-								firstObserving += result.observing;
-								callback(null, true);
-							});
-						},
-						function(callback){
-							redisSemaphore2.getStatus(function(err, result){
-								secondCount += result.value;
-								secondWaiting += result.waiting;
-								secondObserving += result.observing;
-								callback(null, true);
-							});
-						}
-						],
-						function(err, result){
-							expect(firstCount).toEqual(0);
-							expect(firstCount).toEqual(secondCount);
-							expect(firstWaiting+secondWaiting).toEqual(3);
-							expect(firstObserving+secondObserving).toEqual(0);
-							done();
-						}
-					);
-				}, 3000);
+					redisSemaphore2.getStatus(function(err, result){
+						expect(result.value).toEqual(0);
+						expect(redisSemaphore1.waitingList.length+redisSemaphore2.waitingList.length).toEqual(3);
+						expect(redisSemaphore1.observingList.length+redisSemaphore1.observingList.length).toEqual(0);
+						done();
+					});
+				}, 2000);
 			}
 		);
 
@@ -234,40 +192,14 @@ describe('complicated scenario test(callback)', function(){
 				});					
 			}
 			],function(err, result){
-				setTimeout( function(){ 
-					var firstCount = 0,
-						firstWaiting = 0,
-						firstObserving = 0,
-						secondCount = 0,
-						secondWaiting = 0,
-						secondObserving = 0;
-					async.parallel([
-						function(callback){
-							redisSemaphore1.getStatus(function(err, result){
-								firstCount += result.value;
-								firstWaiting += result.waiting;
-								firstObserving += result.observing;
-								callback(null, true);
-							});
-						},
-						function(callback){
-							redisSemaphore2.getStatus(function(err, result){
-								secondCount += result.value;
-								secondWaiting += result.waiting;
-								secondObserving += result.observing;
-								callback(null, true);
-							});
-						}
-						],
-						function(err, result){
-							expect(firstCount).toEqual(secondCount);
-							expect(firstCount).toEqual(0);
-							expect(firstWaiting+secondWaiting).toEqual(0);
-							expect(firstObserving+secondObserving).toEqual(0);
-							done();
-						}
-					);
-				}, 3000);
+				setTimeout(function(){
+					redisSemaphore2.getStatus(function(err, result){
+						expect(result.value).toEqual(0);
+						expect(redisSemaphore1.waitingList.length+redisSemaphore2.waitingList.length).toEqual(0);
+						expect(redisSemaphore1.observingList.length+redisSemaphore1.observingList.length).toEqual(0);
+						done();
+					});
+				}, 2000);
 			}
 		);
 
@@ -340,36 +272,14 @@ describe('complicated scenario test(callback)', function(){
 				callback(null, true);					
 			}
 			],function(err, result){
-				setTimeout( function(){ 
-					var actualmuid,
-						firstWaiting = 0,
-						firstObserving = 0,
-						secondWaiting = 0,
-						secondObserving = 0;
-					async.parallel([
-						function(callback){
-							redisMutex1.getStatus(function(err, result){
-								actualmuid = result.value;
-								firstWaiting += result.waiting;
-								firstObserving += result.observing;
-								callback(null, true);
-							});
-						},
-						function(callback){
-							redisMutex2.getStatus(function(err, result){
-								secondWaiting += result.waiting;
-								secondObserving += result.observing;
-								callback(null, true);
-							});
-						}
-						],
-						function(err, result){
-							expect(actualmuid).toEqual(muid);
-							expect(firstWaiting+secondWaiting).toEqual(1);
-							expect(firstObserving+secondObserving).toEqual(1);
-							done();
-						}
-					);
+
+				setTimeout(function(){
+					redisMutex1.getStatus(function(err, result){
+						expect(result.value).toEqual(muid);
+						expect(redisMutex1.waitingList.length+redisMutex2.waitingList.length).toEqual(1);
+						expect(redisMutex1.observingList.length+redisMutex2.observingList.length).toEqual(1);
+						done();
+					});
 				}, 1500);
 
 			}
@@ -398,37 +308,14 @@ describe('complicated scenario test(callback)', function(){
 				});						
 			}
 			],function(err, result){
-				setTimeout( function(){ 
-					var actualmuid,
-						firstWaiting = 0,
-						firstObserving = 0,
-						secondWaiting = 0,
-						secondObserving = 0;
-					async.parallel([
-						function(callback){
-							redisMutex1.getStatus(function(err, result){
-								actualmuid = result.value;
-								firstWaiting += result.waiting;
-								firstObserving += result.observing;
-								callback(null, true);
-							});
-						},
-						function(callback){
-							redisMutex2.getStatus(function(err, result){
-								secondWaiting += result.waiting;
-								secondObserving += result.observing;
-								callback(null, true);
-							});
-						}
-						],
-						function(err, result){
-							expect(actualmuid).not.toBe(null);
-							expect(firstWaiting+secondWaiting).toEqual(0);
-							expect(firstObserving+secondObserving).toEqual(0);
-							done();
-						}
-					);
-				}, 2000);					
+				setTimeout(function(){
+					redisMutex1.getStatus(function(err, result){
+						expect(result.value).not.toBe(null);
+						expect(redisMutex1.waitingList.length+redisMutex2.waitingList.length).toEqual(0);
+						expect(redisMutex1.observingList.length+redisMutex2.observingList.length).toEqual(0);
+						done();
+					});
+				}, 2000);				
 			}
 		);
 
@@ -465,6 +352,6 @@ describe('complicated scenario test(callback)', function(){
 
 			});
 		});
-	}, 20000); 
+	}, 20000);
 
 });

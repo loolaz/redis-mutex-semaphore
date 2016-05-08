@@ -8,6 +8,8 @@ This is a mutex and semaphore library which is very simply implemented by using 
 npm install redis-mutex-semaphore
 ```
 
+**Note:** The minimum Redis version is 2.2.0+.
+
 ## Constructing Instances
 
 **Semaphore.createSemaphoreClient(key, count, [function callback(err, result){}])**
@@ -198,9 +200,25 @@ Mutex.on('expired', function(expired_id){});
 
 **Checking status of queue**
 
+This method returns value of mutex lock or semaphore's count and the sum of waiting/observing clients in real time. 
+[timeout] argument is optional, and unit is millisecond.
+The default value is 1500.
+
 ```js
-Semaphore/Mutex.getStaus(function callback(err, result){}) // callback
-Semaphore/Mutex.getStaus().then(function(result){}) // promise
+Semaphore/Mutex.getStaus([timeout, ] function callback(err, result){}) // callback
+Semaphore/Mutex.getStaus([timeout]).then(function(result){}) // promise
+
+/* 
+sample return value
+{ 
+  observing: 4, // the sum of observing clients
+  waiting: 3, // the sum of waiting clients
+  value: 0, // mutex id(string) or semaphore count(integer)
+  observingLocal: 1, // the number of observing clients in current local instance
+  waitingLocal: 0 // the number of waiting clients in current local instance
+}
+*/
+
 ```
 
 result object contains value, the number of waiting, the number of observing
@@ -210,9 +228,9 @@ result object contains value, the number of waiting, the number of observing
 **Reset semaphore/mutex**
 
 ```js
-Semaphore.reset(count, function callback(err, result){}) // callback
-Semaphore.reset(count).then(function(result){}) // promise
+Semaphore/Mutex.reset(function callback(err, result){}) // callback
+Semaphore/Mutex.reset().then(function(result){}) // promise
 
-Mutex.reset(function callback(err, result){}) // callback
-Mutex.reset().then(function(result){}) // promise
+Semaphore/Mutex.resetWithPublish(function callback(err, result){}) // callback
+Semaphore/Mutex.resetWithPublish().then(function(result){}) // promise
 ```
