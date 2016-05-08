@@ -53,7 +53,7 @@ Same as creating xxxClient methods, you can call methods with callbacks.
 
 #### 1.1. get & release method
 
-**Semaphore.get(key, function callback(err, result){})**
+**Semaphore.get(function callback(err, result){})**
  - result : true for success / false for fail to accquire
  
 **Semaphore.rel(function callback(err, result){})**
@@ -70,7 +70,7 @@ semaphore.get(function(err, result){
 });
 ```
 
-**Mutex.get(key, function callback(err, result){})**
+**Mutex.get(function callback(err, result){})**
  - result : mutexid(uuid v4) for success / null for failed to lock
  
 **Mutex.rel(function callback(err, result){})**
@@ -120,7 +120,7 @@ If callback is omitted, you can use it with promise.
 
 #### 2.1. get & release method 
 
-**Semaphore.get(key).then(function(result){})**
+**Semaphore.get().then(function(result){})**
  - result : true for success / false for fail to accquire
  
 **Semaphore.rel().then(function(result){})**
@@ -142,7 +142,7 @@ semaphore.get().then(function(result){
 });
 ```
 
-**Mutex.get(key).then(function(mutex_id){})**
+**Mutex.get().then(function(mutex_id){})**
  - result : mutexid(uuid v4) for success / null for failed to lock
  
 **Mutex.rel(mutex_id).then(function(result){})**
