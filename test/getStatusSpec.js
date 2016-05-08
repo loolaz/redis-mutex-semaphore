@@ -71,7 +71,7 @@ describe('getStatus test', function(){
 	}, 120000);
 
 	it('added more client for observing', function(done){
-		console.log('3. Three more clients have been added and started observing');
+		console.log('3. Four more clients have been added and started observing');
 		for(var i =6 ; i < 10 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.observing(100, function(err, result){
@@ -100,13 +100,21 @@ describe('getStatus test', function(){
 
 	it('resetFlush', function(done){
 		console.log('4. All client should be woken up by resetWithPublish call');
-		for(var i = 0; i < 10; i++){
-			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
-			redisSemaphoreClient.resetWithPublish();
-		}
-		setTimeout(function(){
-			done();
-		}, 3000);
+		factoryList[0].getSemaphoreClient(testSemaphoreKey).resetWithPublish().then(function(result){
+			expect(result).toEqual(true);
+		}).catch(function(err){
+			console.log('... reset error : ' + err);
+		});
+		factoryList[0].getSemaphoreClient(testSemaphoreKey).resetWithPublish(function(err, result){
+			if(result){
+				expect(result).toEqual(true);
+				done();
+			}
+			else if(err){
+				console.log('... reset error : ' + err);
+				done();
+			}
+		});
 	}, 14000);
 
 	it('check again', function(done){
