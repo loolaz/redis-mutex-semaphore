@@ -200,9 +200,10 @@ Mutex.on('expired', function(expired_id){});
 
 **Checking status of queue**
 
-This method returns value of mutex lock or semaphore's count and the sum of waiting/observing clients in real time. 
+This method returns value of mutex lock or semaphore's count and the sum of waiting/observing clients in real time.
 [timeout] argument is optional, and unit is millisecond.
-The default value is 1500.
+
+**Note:** It just broadcasts request for status checking to every subscribing clients and waits for their responses until timeout is reached. So if clients are spread out across other processes or network, the timeout value should be big enough to get all of the responses. The default value is 1500.
 
 ```js
 Semaphore/Mutex.getStaus([timeout, ] function callback(err, result){}) // callback
