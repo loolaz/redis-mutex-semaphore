@@ -145,7 +145,7 @@ describe('complicated scenario test(promise)', function(){
 					redisSemaphore1.getStatus().then(function(result){
 						expect(result.value).toEqual(0);
 						expect(redisSemaphore1.waitingList.length+redisSemaphore2.waitingList.length).toEqual(3);
-						expect(redisSemaphore1.observingList.length+redisSemaphore1.observingList.length).toEqual(0);
+						expect(redisSemaphore1.observingList.length+redisSemaphore2.observingList.length).toEqual(0);
 						done();
 					});
 				}, 2000);
@@ -191,7 +191,7 @@ describe('complicated scenario test(promise)', function(){
 					redisSemaphore2.getStatus().then(function(result){
 						expect(result.value).toEqual(0);
 						expect(redisSemaphore1.waitingList.length+redisSemaphore2.waitingList.length).toEqual(0);
-						expect(redisSemaphore1.observingList.length+redisSemaphore1.observingList.length).toEqual(0);
+						expect(redisSemaphore1.observingList.length+redisSemaphore2.observingList.length).toEqual(0);
 						done();
 					});
 				}, 2000);
