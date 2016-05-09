@@ -32,7 +32,7 @@ var factory = require('redis-mutex-semaphore')({
   		db: 1
   	});
   	
-  	// or
+  	// or you can reuse existing redis connection
   
 var factory = require('redis-mutex-semaphore')(redisClient);	
 
