@@ -37,7 +37,7 @@ var factory = require('redis-mutex-semaphore')({
   
 var factory = require('redis-mutex-semaphore')(redisClient);	
 
-factory.createSemaphoreClient('Key', 3 /* semaphore count */); // returns promise if callback is omitted
+factory.createSemaphoreClient('Key', 3 /* initial semaphore count */); // returns promise if callback is omitted
 factory.createMutexClient('Key', 10 /* ttl : second */);  // returns promise if callback is omitted
 
 var semaphoreClient = factory.getSemaphoreClient('Key'),
