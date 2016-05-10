@@ -260,7 +260,7 @@ describe('complicated scenario test(promise)', function(){
 				}).catch(function(err){
 					
 					console.log('... err while waiting(3) : ' + err);
-					expect(err.message).toEqual('timedout');
+					expect(err.code).toEqual('ETIMEDOUT');
 				});
 				callback(null, true);					
 			},

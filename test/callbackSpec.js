@@ -270,7 +270,7 @@ describe('complicated scenario test(callback)', function(){
 						if(result)
 							muid = result;
 					}
-					expect(err.message).toEqual('timedout');
+					expect(err.code).toEqual('ETIMEDOUT');
 				});
 				callback(null, true);					
 			},
