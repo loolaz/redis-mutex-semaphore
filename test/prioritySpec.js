@@ -230,7 +230,7 @@ describe('getStatus test', function(){
 			}
 		}, 3000);
 		setTimeout(function(){
-			console.log('6. Object factories have been finalized');
+			console.log('8. Object factories have been finalized');
 			done();
 		}, 3000);
 	}, 14000);
