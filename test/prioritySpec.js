@@ -10,10 +10,25 @@ var async = require('async'),
 describe('getStatus test', function(){
 	var RedisSharedObject = require('../lib');
 	var initCount = 0;
+	var priList = [RedisSharedObject.priority.HIGH, RedisSharedObject.priority.NORMAL, RedisSharedObject.priority.LOW];
+	var accquiredList = {
+		'0' : {
+			count : 0,
+			name : 'HIGH'
+		},
+		'100' : {
+			count : 0,
+			name : 'NORMAL',
+		},
+		'200' : {
+			count : 0,
+			name : 'LOW'
+		}
+	};
 	it('initialize', function(done){
 		for(var i = 0; i < 10; i++){
 			var factory = RedisSharedObject();
-			factory.createSemaphoreClient(testSemaphoreKey, 3).then(function(result){
+			factory.createSemaphoreClient(testSemaphoreKey, 2).then(function(result){
 				++initCount;
 				if(initCount === 10){
 					console.log('0. Object factories initialized');
@@ -27,10 +42,10 @@ describe('getStatus test', function(){
 	});
 
 	it('check initial status', function(done){
-		console.log('1. there should be no wating / observing client and semaphore count should be 3');
+		console.log('1. Initial statu check');
 		setTimeout(function(){
 			factoryList[0].getSemaphoreClient(testSemaphoreKey).getStatus().then(function(result){
-				expect(result.value).toEqual(3);
+				expect(result.value).toEqual(2);
 				expect(result.waiting).toEqual(0);
 				expect(result.observing).toEqual(0);
 				console.log('... count : ' + result.value);
@@ -42,15 +57,16 @@ describe('getStatus test', function(){
 		}, 3000);
 	}, 120000);
 
-	it('waiting for semaphore', function(done){
-		var priList = [RedisSharedObject.priority.HIGH, RedisSharedObject.priority.NORMAL, RedisSharedObject.priority.LOW];
-		console.log('2. Three client should accquire semaphore and other three should wait');
+	it('accquire semaphore', function(done){
+		
+		console.log('2. Two clients should accquire semaphores randomly and others should wait');
 		for(var i =0 ; i < 10 ; i++){
 			(function(i){
 				var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 				redisSemaphoreClient.waitingForWithPriority(priList[i%3], 100, function(err, result){
 					if(result){
-						console.log('... accquire : ' + priList[i%3]);				
+						accquiredList[priList[i%3]].count++;
+						console.log('... accquire : ' + accquiredList[priList[i%3]].name);
 					}
 					else if(err)
 						console.log(err);
@@ -62,7 +78,7 @@ describe('getStatus test', function(){
 			var redisSemaphoreClient = factoryList[0].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.getStatus(1500).then(function(result){
 				expect(result.value).toEqual(0);
-				expect(result.waiting).toEqual(3);
+				expect(result.waiting).toEqual(8);
 				expect(result.observing).toEqual(0);
 				console.log('... count : ' + result.value);
 				console.log('... waiting : ' + result.waiting);
@@ -72,9 +88,9 @@ describe('getStatus test', function(){
 		}, 3000);
 	}, 120000);
 
-	it('waiting for semaphore', function(done){
-		console.log('3. Three client should accquire semaphore and other three should wait');
-		for(var i =0 ; i < 3 ; i++){
+	it('release semaphore', function(done){
+		console.log('3. Two clients with high priority should accquire semaphores first');
+		for(var i =0 ; i < 2 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.rel(function(err, result){
 				if(result){
@@ -88,19 +104,20 @@ describe('getStatus test', function(){
 		setTimeout(function(){
 			redisSemaphoreClient.getStatus(1500).then(function(result){
 				expect(result.value).toEqual(0);
-				expect(result.waiting).toEqual(3);
+				expect(result.waiting).toEqual(6);
 				expect(result.observing).toEqual(0);
+				expect(accquiredList['0'].count).toBeGreaterThan(1);
 				console.log('... count : ' + result.value);
 				console.log('... waiting : ' + result.waiting);
 				console.log('... observing : ' + result.observing);
 				done();
 			});
-		}, 6000);
+		}, 3000);
 	}, 120000);
 
 	it('waiting for semaphore', function(done){
-		console.log('3. Three client should accquire semaphore and other three should wait');
-		for(var i =0 ; i < 3 ; i++){
+		console.log('4. Two client with next priority should accquire semaphore and others should wait');
+		for(var i =0 ; i < 2 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.rel(function(err, result){
 				if(result){
@@ -114,14 +131,71 @@ describe('getStatus test', function(){
 		setTimeout(function(){
 			redisSemaphoreClient.getStatus(1500).then(function(result){
 				expect(result.value).toEqual(0);
-				expect(result.waiting).toEqual(3);
+				expect(result.waiting).toEqual(4);
 				expect(result.observing).toEqual(0);
+				expect(accquiredList['0'].count).toBeGreaterThan(1);
 				console.log('... count : ' + result.value);
 				console.log('... waiting : ' + result.waiting);
 				console.log('... observing : ' + result.observing);
 				done();
 			});
-		}, 6000);
+		}, 3000);
+	}, 120000);
+
+	it('waiting for semaphore', function(done){
+		console.log('5. Two client with next priority should accquire semaphore and others should wait');
+		for(var i =0 ; i < 2 ; i++){
+			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
+			redisSemaphoreClient.rel(function(err, result){
+				if(result){
+					console.log('... release : ' + result);				
+				}
+				else if(err)
+					console.log(err);
+
+			});
+		}	
+		setTimeout(function(){
+			redisSemaphoreClient.getStatus(1500).then(function(result){
+				expect(result.value).toEqual(0);
+				expect(result.waiting).toEqual(2);
+				expect(result.observing).toEqual(0);
+				expect(accquiredList['100'].count).toBeGreaterThan(1);
+				console.log('... count : ' + result.value);
+				console.log('... waiting : ' + result.waiting);
+				console.log('... observing : ' + result.observing);
+				done();
+			});
+		}, 3000);
+	}, 120000);
+
+	it('waiting for semaphore', function(done){
+		console.log('6. Two client with next priority should accquire semaphore and others should wait');
+		for(var i =0 ; i < 2 ; i++){
+			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
+			redisSemaphoreClient.rel(function(err, result){
+				if(result){
+					console.log('... release : ' + result);				
+				}
+				else if(err)
+					console.log(err);
+
+			});
+		}	
+		setTimeout(function(){
+			redisSemaphoreClient.getStatus(1500).then(function(result){
+				expect(result.value).toEqual(0);
+				expect(result.waiting).toEqual(0);
+				expect(result.observing).toEqual(0);
+				expect(accquiredList['0'].count).toEqual(4);
+				expect(accquiredList['100'].count).toEqual(3);
+				expect(accquiredList['200'].count).toEqual(3);
+				console.log('... count : ' + result.value);
+				console.log('... waiting : ' + result.waiting);
+				console.log('... observing : ' + result.observing);
+				done();
+			});
+		}, 3000);
 	}, 120000);
 
 	it('finalize', function(done){
@@ -129,11 +203,11 @@ describe('getStatus test', function(){
 			for(var i = 0; i < 10; i++){
 				factoryList[i].end();
 			}
-		}, 6000);
+		}, 3000);
 		setTimeout(function(){
 			console.log('6. Object factories have been finalized');
 			done();
-		}, 6000);
+		}, 3000);
 	}, 14000);
 
 });
