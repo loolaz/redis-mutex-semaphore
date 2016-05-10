@@ -1,6 +1,7 @@
 'use strict';
 
 var async = require('async'),
+	redis= require('redis'),
 	redisSharedObject1,
 	redisSharedObject2,
 	muid,
@@ -11,13 +12,26 @@ var async = require('async'),
 describe('complicated scenario test(callback)', function(){
 	var RedisSharedObject = require('../lib');
 	it('initialize', function(done){
-		redisSharedObject1 = RedisSharedObject();
-		redisSharedObject2 = RedisSharedObject();
+		var options = {
+				host : '127.0.0.1',
+				port : 6379,
+				db : 1
+			},		
+			client1 = redis.createClient(options.port, options.host, options),
+			client2 = redis.createClient(options.port, options.host, options);
+		redisSharedObject1 = RedisSharedObject(client1);
+		redisSharedObject2 = RedisSharedObject(client2);
 
-		redisSharedObject1.createSemaphoreClient(testSemaphoreKey, 3);
+		redisSharedObject1.createSemaphoreClient(testSemaphoreKey, 3, function(err, result){
+			if(err)
+				console.log(err);
+		});
 		redisSharedObject1.createMutexClient(testMutexKey1, 10);
 
-		redisSharedObject2.createSemaphoreClient(testSemaphoreKey, 3);
+		redisSharedObject2.createSemaphoreClient(testSemaphoreKey, 3, function(err, result){
+			if(err)
+				console.log(err);			
+		});
 		redisSharedObject2.createMutexClient(testMutexKey1, 10);
 		setTimeout( function(){ 
 			console.log('0. Complicated scenario - callback version - test initialized');
@@ -26,7 +40,7 @@ describe('complicated scenario test(callback)', function(){
 	});
 
 	it('get three semaphore in sequence', function(done){
-		console.log('1. Three clinets should accquire semaphores in sequence');
+		console.log('1. Three clients should accquire semaphores in sequence');
 		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey),
 			redisSemaphore2 = redisSharedObject2.getSemaphoreClient(testSemaphoreKey);
 		redisSemaphore1.get(function(err, sem){
@@ -40,21 +54,23 @@ describe('complicated scenario test(callback)', function(){
 					if(err)
 						console.log(err);
 
-					redisSemaphore2.observing(6, function(err, result){
-						console.log('... finished observing(1)');
-					});						
-					redisSemaphore1.getStatus(function(err, result){							
-						expect(result.value).toEqual(0);
-						done();
+					redisSemaphore1.check(function(err, result){
+						expect(result).toEqual(false);
+						redisSemaphore2.observing(6, function(err, result){
+							console.log('... finished observing(1)');
+						});						
+						redisSemaphore1.getStatus(function(err, result){							
+							expect(result.value).toEqual(0);
+							done();
+						});
 					});
-
 				});
 			});
 		});	
 	}, 6000);
 
 	it('release three semaphore, but six will compete to get them..', function(done){
-		console.log('2. Other three clinet should accquire semaphores, and the other three still will wait')
+		console.log('2. Other three clients should accquire semaphores, and the other three still will wait')
 		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey),
 			redisSemaphore2 = redisSharedObject2.getSemaphoreClient(testSemaphoreKey);		
 		async.parallel([
@@ -148,8 +164,16 @@ describe('complicated scenario test(callback)', function(){
 			],function(err, result){
 				setTimeout( function(){ 
 					redisSemaphore2.getStatus(function(err, result){
+						var totalWaitingCount1 = 0,
+							totalWaitingCount2 = 0;
+						for(var key in redisSemaphore1.waitingList){
+							totalWaitingCount1 += redisSemaphore1.waitingList[key].length;
+						}
+						for(var key in redisSemaphore2.waitingList){
+							totalWaitingCount2 += redisSemaphore2.waitingList[key].length;
+						}
 						expect(result.value).toEqual(0);
-						expect(redisSemaphore1.waitingList.length+redisSemaphore2.waitingList.length).toEqual(3);
+						expect(totalWaitingCount1+totalWaitingCount2).toEqual(3);
 						expect(redisSemaphore1.observingList.length+redisSemaphore2.observingList.length).toEqual(0);
 						done();
 					});
@@ -160,7 +184,7 @@ describe('complicated scenario test(callback)', function(){
 	}, 20000);
 
 	it('release three semaphores', function(done){
-		console.log('3. Rest of clinets should accquire semaphores');		
+		console.log('3. Rest of clients should accquire semaphores');		
 		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey),
 			redisSemaphore2 = redisSharedObject2.getSemaphoreClient(testSemaphoreKey);		
 		async.parallel([
@@ -194,8 +218,16 @@ describe('complicated scenario test(callback)', function(){
 			],function(err, result){
 				setTimeout(function(){
 					redisSemaphore2.getStatus(function(err, result){
+						var totalWaitingCount1 = 0,
+							totalWaitingCount2 = 0;
+						for(var key in redisSemaphore1.waitingList){
+							totalWaitingCount1 += redisSemaphore1.waitingList[key].length;
+						}
+						for(var key in redisSemaphore2.waitingList){
+							totalWaitingCount2 += redisSemaphore2.waitingList[key].length;
+						}
 						expect(result.value).toEqual(0);
-						expect(redisSemaphore1.waitingList.length+redisSemaphore2.waitingList.length).toEqual(0);
+						expect(totalWaitingCount1+totalWaitingCount2).toEqual(0);
 						expect(redisSemaphore1.observingList.length+redisSemaphore2.observingList.length).toEqual(0);
 						done();
 					});
@@ -254,10 +286,18 @@ describe('complicated scenario test(callback)', function(){
 						if(result)
 							muid = result;
 					}
-					expect(err.message).toEqual('timedout');
+					expect(err.code).toEqual('ETIMEDOUT');
 				});
 				callback(null, true);					
 			},
+			function(callback){
+				redisMutex2.observing(1, function(err, result){
+					if(err)
+						console.log('... err while observing : ' + err);
+					expect(err.code).toEqual('ETIMEDOUT');
+				});
+				callback(null, true);					
+			},			
 			function(callback){
 				redisMutex1.waitingFor(8, function(err, result){
 					if(err)
@@ -275,12 +315,20 @@ describe('complicated scenario test(callback)', function(){
 
 				setTimeout(function(){
 					redisMutex1.getStatus(function(err, result){
+						var totalWaitingCount1 = 0,
+							totalWaitingCount2 = 0;
+						for(var key in redisMutex1.waitingList){
+							totalWaitingCount1 += redisMutex1.waitingList[key].length;
+						}
+						for(var key in redisMutex2.waitingList){
+							totalWaitingCount2 += redisMutex2.waitingList[key].length;
+						}
 						expect(result.value).toEqual(muid);
-						expect(redisMutex1.waitingList.length+redisMutex2.waitingList.length).toEqual(1);
+						expect(totalWaitingCount1+totalWaitingCount2).toEqual(1);
 						expect(redisMutex1.observingList.length+redisMutex2.observingList.length).toEqual(1);
 						done();
 					});
-				}, 1500);
+				}, 3000);
 
 			}
 		);
@@ -310,8 +358,16 @@ describe('complicated scenario test(callback)', function(){
 			],function(err, result){
 				setTimeout(function(){
 					redisMutex1.getStatus(function(err, result){
+						var totalWaitingCount1 = 0,
+							totalWaitingCount2 = 0;
+						for(var key in redisMutex1.waitingList){
+							totalWaitingCount1 += redisMutex1.waitingList[key].length;
+						}
+						for(var key in redisMutex2.waitingList){
+							totalWaitingCount2 += redisMutex2.waitingList[key].length;
+						}
 						expect(result.value).not.toBe(null);
-						expect(redisMutex1.waitingList.length+redisMutex2.waitingList.length).toEqual(0);
+						expect(totalWaitingCount1+totalWaitingCount2).toEqual(0);
 						expect(redisMutex1.observingList.length+redisMutex2.observingList.length).toEqual(0);
 						done();
 					});

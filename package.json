@@ -8,14 +8,18 @@
     "uuid": ">=2.0.0",
     "bluebird": "3.3.5"
   },
-  "devDependencies" : {
-    "jasmine" : "latest"
+  "devDependencies": {
+    "coveralls": "^2.11.9",
+    "jasmine": "latest"
   },
-  "repository" : {
+  "repository": {
     "type": "git",
     "url": "git@github.com:loolaz/redis-mutex-semaphore.git"
   },
-  "author": { "name": "Louis WS Choi", "email": "louiswschoi@gmail.com" },
+  "author": {
+    "name": "Louis WS Choi",
+    "email": "louiswschoi@gmail.com"
+  },
   "keywords": [
     "mutex",
     "semaphore",
