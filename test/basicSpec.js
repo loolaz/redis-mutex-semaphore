@@ -17,7 +17,9 @@ describe('basic scenario test', function(){
 				++initCount;
 				if(initCount === 20){
 					console.log('0. Object factories initialized');
-					done();
+					setTimeout(function(){
+						done();
+					}, 1500);
 				}
 			}).catch(function(err){
 				console.log(err);
@@ -26,7 +28,9 @@ describe('basic scenario test', function(){
 				++initCount;
 				if(initCount === 20){
 					console.log('0. Object factories initialized');
-					done();
+					setTimeout(function(){
+						done();
+					}, 1500);
 				}
 			}).catch(function(err){
 				console.log(err);
@@ -35,8 +39,23 @@ describe('basic scenario test', function(){
 		}
 	});
 
+	it('exceptional case', function(done){
+		console.log('1. semaphore key has been accidently deleted');
+		var redisSemaphoreClient = factoryList[0].getSemaphoreClient(testSemaphoreKey);
+		redisSemaphoreClient.client.del("sema:testObjectSem", function(err, result){	
+			redisSemaphoreClient.get(function(err, result){
+				expect(err.code).toEqual('ENOTFOUNDKEY');
+				redisSemaphoreClient.client.set("sema:testObjectSem", 3, function(err, result){
+					done();
+				});
+			});
+		});
+
+	//done();
+	}, 120000);
+
 	it('semaphore exceeds maxcount - callback', function(done){
-		console.log('1. semaphore exceeds semaphore\'s max count and return EMAXCOUNT error');
+		console.log('2. semaphore exceeds semaphore\'s max count and return EMAXCOUNT error');
 		var redisSemaphoreClient = factoryList[0].getSemaphoreClient(testSemaphoreKey);
 		redisSemaphoreClient.rel(function(err, result){
 			expect(err.code).toEqual('EMAXCOUNT');
@@ -46,7 +65,7 @@ describe('basic scenario test', function(){
 	}, 120000);
 
 	it('semaphore exceeds maxcount - promise', function(done){
-		console.log('2. semaphore exceeds semaphore\'s max count and return EMAXCOUNT error');
+		console.log('3. semaphore exceeds semaphore\'s max count and return EMAXCOUNT error');
 		var redisSemaphoreClient = factoryList[0].getSemaphoreClient(testSemaphoreKey);
 		redisSemaphoreClient.rel().catch(function(err){
 			expect(err.code).toEqual('EMAXCOUNT');
@@ -65,7 +84,7 @@ describe('basic scenario test', function(){
 					j++;
 					console.log('... accquire : (' + j + ')');
 					if(j === 10){
-						console.log('3. Testing semaphore with callback has been done by ' + (Date.now() - s));
+						console.log('4. Testing semaphore with callback has been done by ' + (Date.now() - s));
 						done();
 					}
 					setTimeout(function(){
@@ -95,7 +114,7 @@ describe('basic scenario test', function(){
 					j++;
 					console.log('... accquire : (' + j + ')');
 					if(j === 10){
-						console.log('4. Testing semaphore with promise has been done by ' + (Date.now() - s));
+						console.log('5. Testing semaphore with promise has been done by ' + (Date.now() - s));
 						done();
 					}					
 				}
@@ -118,7 +137,7 @@ describe('basic scenario test', function(){
 					j++;
 					console.log('... lock(' + j + ') : ' + id);
 					if(j === 10){
-						console.log('5. Testing mutex with callback has been done by ' + (Date.now() - s));
+						console.log('6. Testing mutex with callback has been done by ' + (Date.now() - s));
 						done();
 					}
 					setTimeout(function(){
@@ -148,7 +167,7 @@ describe('basic scenario test', function(){
 					j++;
 					console.log('... lock : (' + j + ') : ' + id);
 					if(j === 10){
-						console.log('6. Testing mutex with promise has been done by ' + (Date.now() - s));
+						console.log('7. Testing mutex with promise has been done by ' + (Date.now() - s));
 						done();
 					}					
 					return Promise.resolve(id);
@@ -169,7 +188,7 @@ describe('basic scenario test', function(){
 			}
 		}, 6000);
 		setTimeout(function(){
-			console.log('7. Object factories have been finalized');
+			console.log('8. Object factories have been finalized');
 			done();
 		}, 6000);
 	}, 14000);
