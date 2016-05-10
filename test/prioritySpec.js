@@ -16,11 +16,11 @@ describe('getStatus test', function(){
 			count : 0,
 			name : 'HIGH'
 		},
-		'100' : {
+		'30' : {
 			count : 0,
 			name : 'NORMAL',
 		},
-		'200' : {
+		'60' : {
 			count : 0,
 			name : 'LOW'
 		}
@@ -106,7 +106,7 @@ describe('getStatus test', function(){
 				expect(result.value).toEqual(0);
 				expect(result.waiting).toEqual(6);
 				expect(result.observing).toEqual(0);
-				expect(accquiredList['0'].count).toBeGreaterThan(1);
+				expect(accquiredList[RedisSharedObject.priority.HIGH].count).toBeGreaterThan(1);
 				console.log('... count : ' + result.value);
 				console.log('... waiting : ' + result.waiting);
 				console.log('... observing : ' + result.observing);
@@ -133,7 +133,7 @@ describe('getStatus test', function(){
 				expect(result.value).toEqual(0);
 				expect(result.waiting).toEqual(4);
 				expect(result.observing).toEqual(0);
-				expect(accquiredList['0'].count).toBeGreaterThan(1);
+				expect(accquiredList[RedisSharedObject.priority.HIGH].count).toBeGreaterThan(1);
 				console.log('... count : ' + result.value);
 				console.log('... waiting : ' + result.waiting);
 				console.log('... observing : ' + result.observing);
@@ -160,7 +160,7 @@ describe('getStatus test', function(){
 				expect(result.value).toEqual(0);
 				expect(result.waiting).toEqual(2);
 				expect(result.observing).toEqual(0);
-				expect(accquiredList['100'].count).toBeGreaterThan(1);
+				expect(accquiredList[RedisSharedObject.priority.NORMAL].count).toBeGreaterThan(1);
 				console.log('... count : ' + result.value);
 				console.log('... waiting : ' + result.waiting);
 				console.log('... observing : ' + result.observing);
@@ -187,14 +187,39 @@ describe('getStatus test', function(){
 				expect(result.value).toEqual(0);
 				expect(result.waiting).toEqual(0);
 				expect(result.observing).toEqual(0);
-				expect(accquiredList['0'].count).toEqual(4);
-				expect(accquiredList['100'].count).toEqual(3);
-				expect(accquiredList['200'].count).toEqual(3);
+				expect(accquiredList[RedisSharedObject.priority.HIGH].count).toEqual(4);
+				expect(accquiredList[RedisSharedObject.priority.NORMAL].count).toEqual(3);
+				expect(accquiredList[RedisSharedObject.priority.LOW].count).toEqual(3);
 				console.log('... count : ' + result.value);
 				console.log('... waiting : ' + result.waiting);
 				console.log('... observing : ' + result.observing);
 				done();
 			});
+		}, 3000);
+	}, 120000);
+
+	it('scheduling test', function(done){
+		console.log('7. Items in the waiting queue in local instance should be popped up in sequence of priority');
+		factoryList[0].createSemaphoreClient(testSemaphoreKey).then(function(redisSemaphoreClient){
+			for(var i =0 ; i < 10 ; i++){
+				(function(i){					
+					redisSemaphoreClient.waitingForWithPriority(priList[i%3], 100, function(err, result){
+						if(err)
+							console.log(err);
+					});
+				})(i);					
+			}	
+		});
+
+		setTimeout(function(){			
+			var redisSemaphoreClient = factoryList[0].getSemaphoreClient(testSemaphoreKey);
+			
+			redisSemaphoreClient.onRel('', { count : 4});
+			expect(redisSemaphoreClient.waitingList[RedisSharedObject.priority.HIGH].length).toEqual(0);
+			redisSemaphoreClient.onRel('', { count : 4});
+			expect(redisSemaphoreClient.waitingList[RedisSharedObject.priority.NORMAL].length).toEqual(0);
+
+			done();
 		}, 3000);
 	}, 120000);
 
