@@ -97,6 +97,17 @@ The difference between them is that waitingFor keeps trying to get a shared obje
  - result(semaphore) : true for success / false for fail to accquire
  - result(mutex) : mutex id for success / null for fail to lock
  - err(semaphore/mutex) : timedout error or other errors returned
+
+**Semaphore/Mutex.waitingForWithPriority(priority, timeout, function(err, result){})**
+ - same as waitingFor except priority
+ - client waits for semaphore/mutex with its own priority and will be scheduled according to it.
+
+priority argument takes follows:
+ - require('redis-mutex-semaphore').priority.HIGH : immediate execution(default)
+ - require('redis-mutex-semaphore').priority.NORMAL : 30ms delay
+ - require('redis-mutex-semaphore').priority.LOW : 60ms delay
+
+You can change default priority with **Semaphore/Mutex.setDefaultPriority(priority)** method.
  
 **Semaphore/Mutex.observing(timeout, function callback(err, result){})**
  - result(semaphore/mutex) : true for success / false for timedout or errors 
@@ -170,6 +181,17 @@ mutex.get().then(function(mutexID){
  - result(semaphore) : true for success / false for timedout or errors 
  - result(mutex) : mutex id for success / null for timedout or errors 
  - err(semaphore/mutex) : timedout error or other errors returned
+
+**Semaphore/Mutex.waitingForWithPriority(priority, timeout).then(function(result){}).catch(function(err){})**
+ - same as waitingFor except priority
+ - client waits for semaphore/mutex with its own priority and will be scheduled according to it.
+
+priority argument takes follows:
+ - require('redis-mutex-semaphore').priority.HIGH : immediate execution(default)
+ - require('redis-mutex-semaphore').priority.NORMAL : 30ms delay
+ - require('redis-mutex-semaphore').priority.LOW : 60ms delay
+
+You can change default priority with **Semaphore/Mutex.setDefaultPriority(priority)** method.
 
 **Semaphore/Mutex.observing(timeout).then(function(result){}).catch(function(err){})**
  - result(semaphore/mutex) : true for success / false for timedout or errors 
