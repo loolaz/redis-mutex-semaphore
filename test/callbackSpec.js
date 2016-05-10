@@ -1,6 +1,7 @@
 'use strict';
 
 var async = require('async'),
+	redis= require('redis'),
 	redisSharedObject1,
 	redisSharedObject2,
 	muid,
@@ -11,13 +12,26 @@ var async = require('async'),
 describe('complicated scenario test(callback)', function(){
 	var RedisSharedObject = require('../lib');
 	it('initialize', function(done){
-		redisSharedObject1 = RedisSharedObject();
-		redisSharedObject2 = RedisSharedObject();
+		var options = {
+				host : '127.0.0.1',
+				port : 6379,
+				db : 1
+			},		
+			client1 = redis.createClient(options.port, options.host, options),
+			client2 = redis.createClient(options.port, options.host, options);
+		redisSharedObject1 = RedisSharedObject(client1);
+		redisSharedObject2 = RedisSharedObject(client2);
 
-		redisSharedObject1.createSemaphoreClient(testSemaphoreKey, 3);
+		redisSharedObject1.createSemaphoreClient(testSemaphoreKey, 3, function(err, result){
+			if(err)
+				console.log(err);
+		});
 		redisSharedObject1.createMutexClient(testMutexKey1, 10);
 
-		redisSharedObject2.createSemaphoreClient(testSemaphoreKey, 3);
+		redisSharedObject2.createSemaphoreClient(testSemaphoreKey, 3, function(err, result){
+			if(err)
+				console.log(err);			
+		});
 		redisSharedObject2.createMutexClient(testMutexKey1, 10);
 		setTimeout( function(){ 
 			console.log('0. Complicated scenario - callback version - test initialized');
@@ -40,14 +54,16 @@ describe('complicated scenario test(callback)', function(){
 					if(err)
 						console.log(err);
 
-					redisSemaphore2.observing(6, function(err, result){
-						console.log('... finished observing(1)');
-					});						
-					redisSemaphore1.getStatus(function(err, result){							
-						expect(result.value).toEqual(0);
-						done();
+					redisSemaphore1.check(function(err, result){
+						expect(result).toEqual(false);
+						redisSemaphore2.observing(6, function(err, result){
+							console.log('... finished observing(1)');
+						});						
+						redisSemaphore1.getStatus(function(err, result){							
+							expect(result.value).toEqual(0);
+							done();
+						});
 					});
-
 				});
 			});
 		});	
@@ -274,6 +290,14 @@ describe('complicated scenario test(callback)', function(){
 				});
 				callback(null, true);					
 			},
+			function(callback){
+				redisMutex2.observing(1, function(err, result){
+					if(err)
+						console.log('... err while observing : ' + err);
+					expect(err.code).toEqual('ETIMEDOUT');
+				});
+				callback(null, true);					
+			},			
 			function(callback){
 				redisMutex1.waitingFor(8, function(err, result){
 					if(err)
