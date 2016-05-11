@@ -47,10 +47,10 @@ var semaphoreClient = factory.getSemaphoreClient('Key'),
 factory.end(); 
 ```
 
-#Transaction and redis connection##
-If you don't reuse your existing redis connection when loading this module, we assume that there would be one redis connection per each request for semaphore.
+####Transaction and redis connection####
+Semaphore is implemented by redis multi/exec commands and they work only for separate redis connections. If you don't reuse your existing redis connection when loading this module, we assume that there would be one redis connection per each request for semaphore.
 
-So, if you try to accquire semaphore with the code below, then atomic operation will not be guaranteed.
+It means that if you try to accquire semaphore with the code below, atomic operation will not be guaranteed.
 
 ```js
 var factory = require('redis-mutex-semaphore')();
@@ -66,7 +66,7 @@ factory.createSemaphoreClient('key', 1, function(err, client){ // atomic operati
   });
 });
 ```
-(This seems to be odd, but I have some cases to need it)
+(This implementation seems to be odd, but actually I had some cases to need it..)
 
 In order to get around this problem, you can change the redis connection setting with the method below.
 **Semaphore.setNewConnectionPerTransaction(boolean flag)**
@@ -77,7 +77,7 @@ var factory = require('redis-mutex-semaphore')();
 factory.createSemaphoreClient('key', 1).then(function(client){
   client.setNewConnectionPerTransaction(true); 
   return Promise.resolve(client);
-}).then(function(clientWithNewSetting){ // atomic operation is now guaranteed
+}).then(function(clientWithNewSetting){ // atomic operation is now guaranteed in the shared redis connection.
   clientWithNewSetting.waitingFor(10).then(function(result){
     // do something 1
   });
