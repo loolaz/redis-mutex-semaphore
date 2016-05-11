@@ -202,7 +202,8 @@ describe('getStatus test', function(){
 		console.log('7. Items in the waiting queue in local instance should be popped up in sequence of priority');
 		factoryList[0].createSemaphoreClient(testSemaphoreKey).then(function(redisSemaphoreClient){
 			for(var i =0 ; i < 10 ; i++){
-				(function(i){					
+				(function(i){
+					redisSemaphoreClient.setNewConnectionPerTransaction(true);		// should be true if clients with same redis connection want to accquire the same semaphore key	
 					redisSemaphoreClient.waitingForWithPriority(priList[i%3], 100, function(err, result){
 						if(err)
 							console.log(err);
@@ -212,8 +213,7 @@ describe('getStatus test', function(){
 		});
 
 		setTimeout(function(){			
-			var redisSemaphoreClient = factoryList[0].getSemaphoreClient(testSemaphoreKey);
-			
+			var redisSemaphoreClient = factoryList[0].getSemaphoreClient(testSemaphoreKey);		
 			redisSemaphoreClient.onRel('', { count : 4});
 			expect(redisSemaphoreClient.waitingList[RedisSharedObject.priority.HIGH].length).toEqual(0);
 			redisSemaphoreClient.onRel('', { count : 4});

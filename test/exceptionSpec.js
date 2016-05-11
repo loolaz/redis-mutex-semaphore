@@ -21,8 +21,31 @@ describe('basic scenario test', function(){
 		});
 	});
 
-	it('exceptional case', function(done){
-		console.log('1. connection error testing');
+	it('exceptional case 1', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createSemaphoreClient(testSemaphoreKey, 10).then(function(redisSemaphoreClient){
+			console.log('1. semaphore get method error testing with changing transaction setting');
+			anotherfactory.client.quit();
+			redisSemaphoreClient.setNewConnectionPerTransaction(true);
+			redisSemaphoreClient.get(function(err, result){
+				expect(err).toEqual(null);
+				redisSemaphoreClient.setNewConnectionPerTransaction(false);
+				redisSemaphoreClient.get(function(err, result){
+					expect(err).not.toBe(null);
+					setTimeout(function(){
+						done();
+					}, 1500);
+				});
+
+			});			
+
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 2', function(done){
+		console.log('2. connection error testing');
 
 		RedisSharedObject({
 			host : '127.0.0.1',
@@ -37,15 +60,17 @@ describe('basic scenario test', function(){
 			}
 			else if(err){
 				expect(err.code).toEqual('ETEST');
-				done();		
+				setTimeout(function(){
+					done();
+				}, 1000);		
 			}
 		});
 
 	//done();
 	}, 120000);
 
-	it('exceptional case', function(done){
-		console.log('2. reset while using mutex');
+	it('exceptional case 3', function(done){
+		console.log('3. reset while using mutex');
 		var redisMutexClient = factory.getMutexClient(testMutexKey);
 		redisMutexClient.get(function(err, result){
 			redisMutexClient.reset();
@@ -55,8 +80,8 @@ describe('basic scenario test', function(){
 	//done();
 	}, 120000);
 
-	it('exceptional case', function(done){
-		console.log('3. end while using mutex');
+	it('exceptional case 4', function(done){
+		console.log('4. end while using mutex');
 		var redisMutexClient = factory.getMutexClient(testMutexKey);
 		redisMutexClient.get(function(err, result){
 			factory.end();

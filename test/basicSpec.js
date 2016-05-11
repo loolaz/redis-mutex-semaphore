@@ -164,7 +164,7 @@ describe('basic scenario test', function(){
 	it('finalize', function(done){
 		setTimeout(function(){
 			for(var i = 0; i < 10; i++){
-				factoryList[i].end();
+				//factoryList[i].end();
 			}
 		}, 6000);
 		setTimeout(function(){

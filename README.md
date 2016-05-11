@@ -1,6 +1,7 @@
 
 [![Build Status](https://travis-ci.org/loolaz/redis-mutex-semaphore.svg?branch=master)](https://travis-ci.org/loolaz/redis-mutex-semaphore)
 [![Test Coverage](https://codeclimate.com/github/loolaz/redis-mutex-semaphore/badges/coverage.svg)](https://codeclimate.com/github/loolaz/redis-mutex-semaphore/coverage)
+[![Code Climate](https://codeclimate.com/github/loolaz/redis-mutex-semaphore/badges/gpa.svg)](https://codeclimate.com/github/loolaz/redis-mutex-semaphore)
 
 # redis-mutex-semaphore
 This is a mutex and semaphore library which is very simply implemented by using some basic redis commands such as multi/exec(semaphore) and setnx(mutex). So it may not be appropriate for applications having complicated concurrency requirements.
@@ -33,7 +34,7 @@ var factory = require('redis-mutex-semaphore')({
   		db: 1
   	});
   	
-  	// or you can reuse existing redis connection
+  	// or you can reuse existing redis connection(##the redis connection to be reused must have a selected db##)
   
 var factory = require('redis-mutex-semaphore')(redisClient);	
 
@@ -44,6 +45,45 @@ var semaphoreClient = factory.getSemaphoreClient('Key'),
     mutexClient = factory.getMutexClient('Key');
 
 factory.end(); 
+```
+
+It is assumed that you will use a separate redis connection per each semaphore client if you don't reuse your existing redis connection for loading this module. So, the code below will not guarantee atomic operation.
+
+```js
+var factory = require('redis-mutex-semaphore')();
+factory.createSemaphoreClient('key', 1, function(err, client){ // atomic operation is not guaranteed
+  client.waitingFor(10).then(function(result){
+    // do something 1
+  });
+  client.waitingFor(10).then(function(result){
+    // do something 2
+  });
+  client.waitingFor(10).then(function(result){
+    // do something 3
+  });
+});
+```
+
+However you can change the redis connection setting when accquiring semaphore, so atomic operation can be guaranteed.
+
+**Semaphore.setNewConnectionPerTransaction(boolean flag)**
+
+```js
+var factory = require('redis-mutex-semaphore')();
+factory.createSemaphoreClient('key', 1).then(function(client){
+  client.setNewConnectionPerTransaction(true); // whenever trying to accquiring semaphore, a temporary redis connection will be created internally and transaction will be guaranteed.
+  return Promise.resolve(clientWithNewSetting);
+}).then(function(clientWithNewSetting){ // atomic operation is guaranteed
+  clientWithNewSetting.waitingFor(10).then(function(result){
+    // do something 1
+  });
+  clientWithNewSetting.waitingFor(10).then(function(result){
+    // do something 2
+  });
+  clientWithNewSetting.waitingFor(10).then(function(result){
+    // do something 3
+  });
+});
 ```
 
 ## Method Usage
