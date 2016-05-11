@@ -1,6 +1,7 @@
 
 [![Build Status](https://travis-ci.org/loolaz/redis-mutex-semaphore.svg?branch=master)](https://travis-ci.org/loolaz/redis-mutex-semaphore)
 [![Test Coverage](https://codeclimate.com/github/loolaz/redis-mutex-semaphore/badges/coverage.svg)](https://codeclimate.com/github/loolaz/redis-mutex-semaphore/coverage)
+[![Code Climate](https://codeclimate.com/github/loolaz/redis-mutex-semaphore/badges/gpa.svg)](https://codeclimate.com/github/loolaz/redis-mutex-semaphore)
 
 # redis-mutex-semaphore
 This is a mutex and semaphore library which is very simply implemented by using some basic redis commands such as multi/exec(semaphore) and setnx(mutex). So it may not be appropriate for applications having complicated concurrency requirements.
