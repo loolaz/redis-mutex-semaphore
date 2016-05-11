@@ -45,7 +45,67 @@ describe('basic scenario test', function(){
 	});
 
 	it('exceptional case 2', function(done){
-		console.log('2. connection error testing');
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createSemaphoreClient(testSemaphoreKey, 10).then(function(redisSemaphoreClient){
+			console.log('2. getStatus(callback) method should return error');
+			anotherfactory.client.quit();
+			redisSemaphoreClient.getStatus(function(err, result){
+				expect(err).not.toBe(null);
+				done();
+			});			
+
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 3', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createSemaphoreClient(testSemaphoreKey, 10).then(function(redisSemaphoreClient){
+			console.log('3. getStatus(promise) method should return error');
+			anotherfactory.client.quit();
+			redisSemaphoreClient.getStatus().catch(function(err){
+				expect(err).not.toBe(null);
+				done();
+			});			
+
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 4', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createSemaphoreClient(testSemaphoreKey, 10).then(function(redisSemaphoreClient){
+			console.log('4. waitingFor method(promise) should return error');
+			anotherfactory.client.quit();
+			redisSemaphoreClient.waitingFor(10).catch(function(err){
+				expect(err).not.toBe(null);
+				done();
+			});			
+
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 5', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createSemaphoreClient(testSemaphoreKey, 10).then(function(redisSemaphoreClient){
+			console.log('5. waitingFor method(callback) should return error');
+			anotherfactory.client.quit();
+			redisSemaphoreClient.waitingFor(10, function(err, result){
+				expect(err).not.toBe(null);
+				done();
+			});	
+
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 6', function(done){
+		console.log('6. connection error testing');
 
 		RedisSharedObject({
 			host : '127.0.0.1',
@@ -69,8 +129,8 @@ describe('basic scenario test', function(){
 	//done();
 	}, 120000);
 
-	it('exceptional case 3', function(done){
-		console.log('3. reset while using mutex');
+	it('exceptional case 7', function(done){
+		console.log('7. reset while using mutex');
 		var redisMutexClient = factory.getMutexClient(testMutexKey);
 		redisMutexClient.get(function(err, result){
 			redisMutexClient.reset();
@@ -80,8 +140,8 @@ describe('basic scenario test', function(){
 	//done();
 	}, 120000);
 
-	it('exceptional case 4', function(done){
-		console.log('4. end while using mutex');
+	it('exceptional case 8', function(done){
+		console.log('8. end while using mutex');
 		var redisMutexClient = factory.getMutexClient(testMutexKey);
 		redisMutexClient.get(function(err, result){
 			factory.end();
