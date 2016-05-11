@@ -17,7 +17,9 @@ describe('complicated scenario test(promise)', function(){
 		redisSharedObject1 = RedisSharedObject();
 		redisSharedObject2 = RedisSharedObject();
 
-		redisSharedObject1.createSemaphoreClient(testSemaphoreKey, 3);
+		redisSharedObject1.createSemaphoreClient(testSemaphoreKey, 3).then(function(client){
+			client.setNewConnectionPerTransaction(true); // should be true if clients with same redis connection want to accquire the same semaphore key	
+		});
 		redisSharedObject1.createMutexClient(testMutexKey1, 10);
 
 		redisSharedObject2.createSemaphoreClient(testSemaphoreKey, 3);
