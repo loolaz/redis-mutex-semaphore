@@ -10,13 +10,12 @@ var async = require('async'),
 describe('getStatus test', function(){
 	var RedisSharedObject = require('../lib');
 	var initCount = 0;
-	it('initialize', function(done){
+	it('0. Object factories initialized', function(done){
 		for(var i = 0; i < 10; i++){
 			var factory = RedisSharedObject();
 			factory.createSemaphoreClient(testSemaphoreKey, 3).then(function(result){
 				++initCount;
 				if(initCount === 10){
-					console.log('0. Object factories initialized');
 					done();
 				}
 			}).catch(function(err){
@@ -26,8 +25,7 @@ describe('getStatus test', function(){
 		}
 	});
 
-	it('check initial status', function(done){
-		console.log('1. there should be no wating / observing client and semaphore count should be 3');
+	it('1. there should be no wating / observing client and semaphore count should be 3', function(done){
 		setTimeout(function(){
 			factoryList[0].getSemaphoreClient(testSemaphoreKey).getStatus().then(function(result){
 				expect(result.value).toEqual(3);
@@ -39,11 +37,10 @@ describe('getStatus test', function(){
 				done();
 			});
 			
-		}, 3000);
+		}, 1500);
 	}, 120000);
 
-	it('waiting for semaphore', function(done){
-		console.log('2. Three client should accquire semaphore and other three should wait');
+	it('2. Three client should accquire semaphore and other three should wait', function(done){
 		for(var i =0 ; i < 6 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.waitingFor(100, function(err, result){
@@ -65,13 +62,12 @@ describe('getStatus test', function(){
 				console.log('... observing : ' + result.observing);
 				done();
 			});
-		}, 3000);
+		}, 1500);
 
 		
 	}, 120000);
 
-	it('added more client for observing', function(done){
-		console.log('3. Four more clients have been added and started observing');
+	it('3. Four more clients have been added and started observing', function(done){
 		for(var i =6 ; i < 10 ; i++){
 			var redisSemaphoreClient = factoryList[i].getSemaphoreClient(testSemaphoreKey);
 			redisSemaphoreClient.observing(100, function(err, result){
@@ -93,13 +89,12 @@ describe('getStatus test', function(){
 				done();
 			});
 			
-		}, 3000);
+		}, 1500);
 
 		
 	}, 120000);
 
-	it('resetFlush', function(done){
-		console.log('4. All client should be woken up by resetWithPublish call');
+	it('4. All client should be woken up by resetWithPublish call', function(done){
 		factoryList[0].getSemaphoreClient(testSemaphoreKey).resetWithPublish().then(function(result){
 			expect(result).toEqual(true);
 		}).catch(function(err){
@@ -117,8 +112,7 @@ describe('getStatus test', function(){
 		});
 	}, 14000);
 
-	it('check again', function(done){
-		console.log('5. Now, there should be no waiting client any more');
+	it('5. Now, there should be no waiting client any more', function(done){
 		setTimeout(function(){
 			factoryList[0].getSemaphoreClient(testSemaphoreKey).getStatus(1500, function(err, result){
 				expect(result.value).toEqual(0);
@@ -130,19 +124,19 @@ describe('getStatus test', function(){
 				done();
 			});
 			
-		}, 3000);
+		}, 1500);
 	}, 120000);
 
-	it('finalize', function(done){
+	it('6. Object factories have been finalized', function(done){
 		setTimeout(function(){
 			for(var i = 0; i < 10; i++){
 				factoryList[i].end();
 			}
-		}, 6000);
+		}, 2000);
 		setTimeout(function(){
 			console.log('6. Object factories have been finalized');
 			done();
-		}, 6000);
+		}, 3000);
 	}, 14000);
 
 });

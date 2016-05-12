@@ -1,7 +1,7 @@
 {
   "name": "redis-mutex-semaphore",
   "description": "redis mutex and semaphore library",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "main": "./lib",
   "dependencies": {
     "redis": "2.5.3",
@@ -9,7 +9,10 @@
     "bluebird": "3.3.5"
   },
   "devDependencies": {
-    "jasmine": "latest"
+    "async": "latest",
+    "istanbul": "latest",
+    "jasmine": "2.2.1",
+    "jasmine-spec-reporter": "^2.4.0"
   },
   "repository": {
     "type": "git",
@@ -27,7 +30,7 @@
     "javascript"
   ],
   "scripts": {
-    "test": "istanbul cover jasmine ./test/*.js"
+    "test": "node node_modules/istanbul/lib/cli.js cover ./test/j-runner.js"
   },
   "license": "MIT"
 }

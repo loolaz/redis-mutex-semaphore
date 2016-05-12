@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/loolaz/redis-mutex-semaphore.svg?branch=master)](https://travis-ci.org/loolaz/redis-mutex-semaphore)
 [![Test Coverage](https://codeclimate.com/github/loolaz/redis-mutex-semaphore/badges/coverage.svg)](https://codeclimate.com/github/loolaz/redis-mutex-semaphore/coverage)
 [![Code Climate](https://codeclimate.com/github/loolaz/redis-mutex-semaphore/badges/gpa.svg)](https://codeclimate.com/github/loolaz/redis-mutex-semaphore)
+[![downloads](https://img.shields.io/npm/dm/redis-mutex-semaphore.svg?style=flat-square)](http://npm-stat.com/charts.html?package=redis-mutex-semaphore&from=2016-05-04)
 
 # redis-mutex-semaphore
 This is a mutex and semaphore library which is very simply implemented by using some basic redis commands such as multi/exec(semaphore) and setnx(mutex). So it may not be appropriate for applications having complicated concurrency requirements.
@@ -47,7 +48,7 @@ var semaphoreClient = factory.getSemaphoreClient('Key'),
 factory.end(); 
 ```
 
-####Transaction and redis connection####
+####Transaction and redis connection
 Semaphore is implemented by redis multi/exec commands and they work only for separate redis connections. If you don't reuse your existing redis connection when loading this module, we assume that there would be one redis connection per each request for semaphore.
 
 It means that if you try to accquire semaphore with the code below, atomic operation will not be guaranteed.
@@ -70,7 +71,7 @@ factory.createSemaphoreClient('key', 1, function(err, client){ // atomic operati
 
 In order to get around this problem, you can change the redis connection setting with the method below.
 **Semaphore.setNewConnectionPerTransaction(boolean flag)**
-This method allows us to create a temporary redis connection whenever trying to accquire semaphore and transaction will be guaranteed.
+This method allows us to create a temporary redis connection whenever trying to accquire semaphore and transaction will be guaranteed with a little delay of new connection.
 
 ```js
 var factory = require('redis-mutex-semaphore')();
@@ -158,7 +159,16 @@ You can change default priority with **Semaphore/Mutex.setDefaultPriority(priori
  - err(semaphore/mutex) : timedout error or other errors returned
  
 ```js
+var factory = require('redis-mutex-semaphore')();
+
+...
+
 Semaphore/Mutex.waitingFor(10 /* timeout : second */, function(err, result){
+  if(result)
+    // doing something with semaphore/lock
+});
+
+Semaphore/Mutex.waitingForWithPriority(factory.priority.NORMAL, 10 /* timeout : second */, function(err, result){
   if(result)
     // doing something with semaphore/lock
 });
@@ -242,7 +252,18 @@ You can change default priority with **Semaphore/Mutex.setDefaultPriority(priori
  - err(semaphore/mutex) : timedout error or other errors returned
 
 ```js
+var factory = require('redis-mutex-semaphore')();
+
+...
+
 Semaphore/Mutex.waitingFor(10 /* timeout : second */).then(function(result){
+  if(result)
+    // doing something with semaphore/lock
+}).catch(function(e){
+  // e could be timed out error or others
+});
+
+Semaphore/Mutex.waitingForWithPriority(factory.priority.NORMAL, 10 /* timeout : second */).then(function(result){
   if(result)
     // doing something with semaphore/lock
 }).catch(function(e){
@@ -258,12 +279,6 @@ Semaphore/Mutex.observing(10 /* timeout : second */).then(function(result){
 ```
 
 ### 3. Others
-
-**Checking expiry of mutex**
-
-```js
-Mutex.on('expired', function(expired_id){});
-```
 
 **Checking status of queue**
 
@@ -301,4 +316,23 @@ Semaphore/Mutex.reset().then(function(result){}) // promise
 
 Semaphore/Mutex.resetWithPublish(function callback(err, result){}) // callback
 Semaphore/Mutex.resetWithPublish().then(function(result){}) // promise
+```
+
+## Events
+
+You can register listeners to the following events.
+
+| Name                | Description   | 
+|---------------------|---------------|
+| semaphore_acquired  | fired when semaphore is acquired. it returns remained semaphore count | 
+| semaphore_released  | fired when semaphore is released. it returns remained semaphore count       | 
+| mutex_locked        | fired when mutex is locked. it returns mutex id | 
+| mutex_unlocked      | fired when mutex is acquired. it always returns 1      | 
+| mutex_expired       | fired when mutex is expired. it always returns 1. this event is sent to every clients      |
+| expired             | fired when mutex is expired. it always returns 1. this event is only sent to the client which has locked    |
+
+## Run Tests
+
+```
+npm test
 ```

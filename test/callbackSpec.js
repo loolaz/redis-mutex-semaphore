@@ -10,8 +10,9 @@ var async = require('async'),
 	testMutexKey2 = 'testObjectMutex2';
 
 describe('complicated scenario test(callback)', function(){
-	var RedisSharedObject = require('../lib');
-	it('initialize', function(done){
+	var RedisSharedObject = require('../lib'),
+		isAnotherClientReceivedMutexExpiredEvent = false;
+	it('0. Complicated scenario - callback version - test initialized', function(done){
 		var options = {
 				host : '127.0.0.1',
 				port : 6379,
@@ -34,13 +35,11 @@ describe('complicated scenario test(callback)', function(){
 		});
 		redisSharedObject2.createMutexClient(testMutexKey1, 10);
 		setTimeout( function(){ 
-			console.log('0. Complicated scenario - callback version - test initialized');
 			done(); 
-		}, 3000);
+		}, 1500);
 	});
 
-	it('get three semaphore in sequence', function(done){
-		console.log('1. Three clients should accquire semaphores in sequence');
+	it('1. Three clients should accquire semaphores in sequence', function(done){
 		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey),
 			redisSemaphore2 = redisSharedObject2.getSemaphoreClient(testSemaphoreKey);
 		redisSemaphore1.get(function(err, sem){
@@ -69,8 +68,7 @@ describe('complicated scenario test(callback)', function(){
 		});	
 	}, 6000);
 
-	it('release three semaphore, but six will compete to get them..', function(done){
-		console.log('2. Other three clients should accquire semaphores, and the other three still will wait')
+	it('2. Other three clients should accquire semaphores, and the other three still will wait', function(done){
 		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey),
 			redisSemaphore2 = redisSharedObject2.getSemaphoreClient(testSemaphoreKey);		
 		async.parallel([
@@ -183,8 +181,7 @@ describe('complicated scenario test(callback)', function(){
 
 	}, 20000);
 
-	it('release three semaphores', function(done){
-		console.log('3. Rest of clients should accquire semaphores');		
+	it('3. Rest of clients should accquire semaphores', function(done){
 		var redisSemaphore1 = redisSharedObject1.getSemaphoreClient(testSemaphoreKey),
 			redisSemaphore2 = redisSharedObject2.getSemaphoreClient(testSemaphoreKey);		
 		async.parallel([
@@ -237,8 +234,7 @@ describe('complicated scenario test(callback)', function(){
 
 	}, 20000);
 
-	it('get mutex and another waits for being released', function(done){
-		console.log('4. One should get mutex, one should fail to lock, one will wait for mutext to be unlocked, and one will be timed out while waiting');
+	it('4. One should get mutex, one should fail to lock, one will wait for mutext to be unlocked, and one will be timed out while waiting', function(done){
 		var redisMutex1 = redisSharedObject1.getMutexClient(testMutexKey1),
 			redisMutex2 = redisSharedObject2.getMutexClient(testMutexKey1);
 		async.parallel([
@@ -297,7 +293,7 @@ describe('complicated scenario test(callback)', function(){
 					expect(err.code).toEqual('ETIMEDOUT');
 				});
 				callback(null, true);					
-			},			
+			},
 			function(callback){
 				redisMutex1.waitingFor(8, function(err, result){
 					if(err)
@@ -328,15 +324,14 @@ describe('complicated scenario test(callback)', function(){
 						expect(redisMutex1.observingList.length+redisMutex2.observingList.length).toEqual(1);
 						done();
 					});
-				}, 3000);
+				}, 2000);
 
 			}
 		);
 
 	}, 20000);
 
-	it('release mutex', function(done){
-		console.log('5. First unlocking try should fail due to incorrect mutex id, but second try should succeed. In result, one can get a lock finally');
+	it('5. First unlocking try should fail due to incorrect mutex id, but second try should succeed. In result, one can get a lock finally', function(done){
 		var redisMutex1 = redisSharedObject1.getMutexClient(testMutexKey1),
 			redisMutex2 = redisSharedObject2.getMutexClient(testMutexKey1);		
 		async.parallel([
@@ -377,15 +372,23 @@ describe('complicated scenario test(callback)', function(){
 
 	}, 20000);
 
+	it(' - another mutext client setup', function(done){
+		RedisSharedObject().createMutexClient('toBeExpired', 10).then(function(anotherClient){
+			anotherClient.on('mutex_expired', function(result){
+				isAnotherClientReceivedMutexExpiredEvent = true;
+			});
+			done();
+		});
 
-	it('this mutex will be expired', function(done){
-		console.log('6. Mutex should be expired, and a waiting client should get another');
-		redisSharedObject2.createMutexClient('toBeExpired', 2, function(err, waitingClient){
-			redisSharedObject1.createMutexClient('toBeExpired', 2, function(err, toBeExpiredSoon){
+	});
+
+	it('6. Mutex should be expired, and a waiting client should get another', function(done){
+		var isLocalInstanceReceivedMutexExpiredEvent = false;
+		redisSharedObject2.createMutexClient('toBeExpired', 1, function(err, waitingClient){
+			redisSharedObject1.createMutexClient('toBeExpired', 1, function(err, toBeExpiredSoon){
 				toBeExpiredSoon.on('expired', function(expired_id){
-					console.log('... ' + expired_id + ' has been expired');
+					isLocalInstanceReceivedMutexExpiredEvent = true;
 				});	
-
 				toBeExpiredSoon.get(function(err, result){
 					if(err)
 						console.log('... err while waiting(5) : ' + err);
@@ -397,13 +400,18 @@ describe('complicated scenario test(callback)', function(){
 							expect(result).not.toBe(null);
 							if(result)
 								console.log('... previous lock has been expired, and got new one : ' + result);
+							waitingClient.reset(function(err, result){
+								expect(result).toEqual(true);
+							});
 						});
 					}
 					setTimeout(function(){
+						expect(isAnotherClientReceivedMutexExpiredEvent).toEqual(true);
+						expect(isLocalInstanceReceivedMutexExpiredEvent).toEqual(true);
 						redisSharedObject1.end();
 						redisSharedObject2.end();
 						done();
-					}, 5000);
+					}, 2000);
 				});
 
 			});
