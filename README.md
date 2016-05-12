@@ -135,8 +135,10 @@ mutex.get(function(err, mutexID){
 
 #### 1.2. wait/observe method
 
-Both waitingFor and observe methods wait for a shared object to be released.
-The difference between them is that waitingFor keeps trying to get a shared object until timedout, but observing just returns when the observed object is released.
+Both waitingFor/waitingForWithPriority and observe methods are blocked for a shared object to be released.
+The difference between them is that waitingFor is blocked until getting a lock or timedout. However observing is blocked, and just returns when the observed object is released. 
+
+The order of dispatching waiting clients is determined by considering both their waiting priorities and FIFO(first in, first out) policy of waiting queue. Other observing clients and listeners are not affected by this scheduling policy.
 
 **Semaphore/Mutex.waitingFor(timeout, function callback(err, result){})**
  - result(semaphore) : true for success / false for fail to accquire
