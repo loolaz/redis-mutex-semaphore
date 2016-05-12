@@ -187,10 +187,10 @@ If callback is omitted, you can use it with promise.
 #### 2.1. get & release method 
 
 **Semaphore.get().then(function(result){})**
- - result : true for success / false for fail to accquire
+ - same as callback version
  
 **Semaphore.rel().then(function(result){})**
- - result : the number of remained semaphore for success
+ - same as callback version
  
 ```js
 semaphore.get().then(function(result){
@@ -209,10 +209,10 @@ semaphore.get().then(function(result){
 ```
 
 **Mutex.get().then(function(mutex_id){})**
- - result : mutexid(uuid v4) for success / null for failed to lock
+ - same as callback version
  
 **Mutex.rel(mutex_id).then(function(result){})**
- - result : true for sucess / false for fail to delete key
+ - same as callback version
  
 ```js
 mutex.get().then(function(mutexID){
@@ -232,24 +232,18 @@ mutex.get().then(function(mutexID){
 #### 2.2. wait/observe method
 
 **Semaphore/Mutex.waitingFor(timeout).then(function(result){}).catch(function(err){})**
- - result(semaphore) : true for success / false for timedout or errors 
- - result(mutex) : mutex id for success / null for timedout or errors 
- - err(semaphore/mutex) : timedout error or other errors returned
+ - same as callback version
 
 **Semaphore/Mutex.waitingForWithPriority(priority, timeout).then(function(result){}).catch(function(err){})**
- - same as waitingFor except priority
- - client waits for semaphore/mutex with its own priority and will be scheduled according to it.
+ - same as callback version
 
 priority argument takes follows:
- - require('redis-mutex-semaphore').priority.HIGH : immediate execution(default)
- - require('redis-mutex-semaphore').priority.NORMAL : 30ms delay
- - require('redis-mutex-semaphore').priority.LOW : 60ms delay
+ - same as callback version
 
 You can change default priority with **Semaphore/Mutex.setDefaultPriority(priority)** method.
 
 **Semaphore/Mutex.observing(timeout).then(function(result){}).catch(function(err){})**
- - result(semaphore/mutex) : true for success / false for timedout or errors 
- - err(semaphore/mutex) : timedout error or other errors returned
+ - same as callback version
 
 ```js
 var factory = require('redis-mutex-semaphore')();
