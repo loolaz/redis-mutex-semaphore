@@ -138,7 +138,7 @@ mutex.get(function(err, mutexID){
 Both waitingFor/waitingForWithPriority and observe methods are blocked for a shared object to be released.
 The difference between them is that waitingFor is blocked until getting a lock or timedout. However observing is blocked, and just returns when the observed object is released. 
 
-The order of dispatching waiting clients is determined by considering both their waiting priorities and FIFO(first in, first out) policy of waiting queue. Other observing clients and listeners are not affected by this scheduling policy.
+The order of dispatching waiting clients is determined by considering their waiting priorities. In the case of the redis client having multiple requests sharing the same connection, FIFO(first in, first out) policy is also applied to the waiting queue. Other observing clients and event listeners are not affected by this scheduling policy.
 
 **Semaphore/Mutex.waitingFor(timeout, function callback(err, result){})**
  - result(semaphore) : true for success / false for fail to accquire
@@ -151,8 +151,8 @@ The order of dispatching waiting clients is determined by considering both their
 
 priority argument takes follows:
  - require('redis-mutex-semaphore').priority.HIGH : immediate execution(default)
- - require('redis-mutex-semaphore').priority.NORMAL : 30ms delay
- - require('redis-mutex-semaphore').priority.LOW : 60ms delay
+ - require('redis-mutex-semaphore').priority.NORMAL : random delay between 10~30ms
+ - require('redis-mutex-semaphore').priority.LOW : random delay 40~60ms
 
 You can change default priority with **Semaphore/Mutex.setDefaultPriority(priority)** method.
  
@@ -278,10 +278,10 @@ Semaphore/Mutex.observing(10 /* timeout : second */).then(function(result){
 
 **Checking status of queue**
 
-This method returns value of mutex lock or semaphore's count and the sum of waiting/observing clients in real time.
+This method returns value of mutex lock or semaphore's count and the sum of waiting/observing clients with a short delay.
 [timeout] argument is optional, and unit is millisecond.
 
-**Note:** It just broadcasts request for status checking to every subscribing clients and waits for their responses until timeout is reached. So if clients are spread out across other processes or network, the timeout value should be big enough to get all of the responses. The default value is 1500.
+**Note:** It just broadcasts request for status checking to every subscribing clients and waits for their responses until timeout is reached. So if clients are spread out across other processes or network, the timeout value should be big enough to get all of the responses. The default value is 300 - this value is adjusted empirically by testing on the environment that the redis server is not far away from the service using this module geographically. However your environment may be different too.
 
 ```js
 Semaphore/Mutex.getStaus([timeout, ] function callback(err, result){}) // callback
@@ -317,6 +317,12 @@ Semaphore/Mutex.resetWithPublish().then(function(result){}) // promise
 ## Events
 
 You can register listeners to the following events.
+
+```js
+Semaphore/Mutex.on('semaphore_acquired', function(count){
+  // doing something
+});
+```
 
 | Name                | Description   | 
 |---------------------|---------------|
