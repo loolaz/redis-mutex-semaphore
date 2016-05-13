@@ -67,7 +67,6 @@ factory.createSemaphoreClient('key', 1, function(err, client){ // atomic operati
   });
 });
 ```
-(This implementation seems to be odd, but actually I had some cases to need it..)
 
 In order to get around this problem, you can change the redis connection setting with the method below.
 **Semaphore.setNewConnectionPerTransaction(boolean flag)**
