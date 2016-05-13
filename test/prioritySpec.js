@@ -3,8 +3,8 @@
 var async = require('async'),
 	Promise = require('bluebird'),
 	redis= require('redis'),
-	testSemaphoreKey = 'testObjectSem',
-	testMutexKey = 'testObjectMutex',
+	testSemaphoreKey = 'priorityTestObjectSem',
+	testMutexKey = 'priorityTestObjectMutex',
 	factoryList = [];
 
 describe('priority based scheduling test', function(){
@@ -16,11 +16,11 @@ describe('priority based scheduling test', function(){
 			count : 0,
 			name : 'HIGH'
 		},
-		'30' : {
+		'10' : {
 			count : 0,
 			name : 'NORMAL',
 		},
-		'60' : {
+		'40' : {
 			count : 0,
 			name : 'LOW'
 		}
@@ -191,7 +191,7 @@ describe('priority based scheduling test', function(){
 	}, 120000);
 
 	it('7. Items in the waiting queue in local instance should be popped up in sequence of priority', function(done){
-		factoryList[0].createSemaphoreClient(testSemaphoreKey).then(function(redisSemaphoreClient){
+		factoryList[0].createSemaphoreClient(testSemaphoreKey, 2).then(function(redisSemaphoreClient){
 			for(var i =0 ; i < 10 ; i++){
 				(function(i){
 					redisSemaphoreClient.setNewConnectionPerTransaction(true);		// should be true if clients with same redis connection want to accquire the same semaphore key	

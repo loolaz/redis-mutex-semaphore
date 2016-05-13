@@ -3,8 +3,8 @@
 var async = require('async'),
 	Promise = require('bluebird'),
 	redis= require('redis'),
-	testSemaphoreKey = 'testObjectSem',
-	testMutexKey = 'testObjectMutex',
+	testSemaphoreKey = 'basicTestObjectSem',
+	testMutexKey = 'basicTestObjectMutex',
 	factoryList = [];
 
 describe('basic scenario test', function(){

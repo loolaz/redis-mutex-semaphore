@@ -6,9 +6,9 @@ redis= require('redis'),
 	redisSharedObject1,
 	redisSharedObject2,
 	muid,
-	testSemaphoreKey = 'testObjectSem',
-	testMutexKey1 = 'testObjectMutex1',
-	testMutexKey2 = 'testObjectMutex2';
+	testSemaphoreKey = 'promiseTestObjectSem',
+	testMutexKey1 = 'promiseTestObjectMutex1',
+	testMutexKey2 = 'promiseTestObjectMutex2';
 
 describe('complicated scenario test(promise)', function(){
 	var RedisSharedObject = require('../lib');
@@ -341,8 +341,8 @@ describe('complicated scenario test(promise)', function(){
 	}, 20000);
 
 	it('6. Mutex should be expired, and a waiting client should get another', function(done){
-		var toBeExpiredSoonPromise = redisSharedObject1.createMutexClient('toBeExpired', 1);
-		var watingClientPromise = redisSharedObject2.createMutexClient('toBeExpired', 1, function(err, waitingClient){
+		var toBeExpiredSoonPromise = redisSharedObject1.createMutexClient('promiseTestToBeExpired', 1);
+		var watingClientPromise = redisSharedObject2.createMutexClient('promiseTestToBeExpired', 1, function(err, waitingClient){
 			
 			toBeExpiredSoonPromise.then(function(mutexClient){
 				mutexClient.on('expired', function(expired_id){

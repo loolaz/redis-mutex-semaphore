@@ -3,8 +3,8 @@
 var async = require('async'),
 	Promise = require('bluebird'),
 	redis= require('redis'),
-	testSemaphoreKey = 'testObjectSem',
-	testMutexKey = 'testObjectMutex',
+	testSemaphoreKey = 'exceptionTestObjectSem',
+	testMutexKey = 'exceptionTestObjectMutex',
 	factory;
 
 describe('exceptional scenario test', function(){
@@ -192,7 +192,7 @@ describe('exceptional scenario test', function(){
 	it('exceptional case 12 - semaphore key has been accidently deleted', function(done){
 		var anotherfactory = RedisSharedObject();
 		anotherfactory.createSemaphoreClient(testSemaphoreKey, 10).then(function(redisSemaphoreClient){
-			redisSemaphoreClient.client.del("sema:testObjectSem", function(err, result){	
+			redisSemaphoreClient.client.del("sema:exceptionTestObjectSem", function(err, result){	
 				redisSemaphoreClient.get(function(err, result){
 					expect(err.code).toEqual('ENOTFOUNDKEY');
 					done();

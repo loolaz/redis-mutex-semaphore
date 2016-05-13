@@ -5,9 +5,9 @@ var async = require('async'),
 	redisSharedObject1,
 	redisSharedObject2,
 	muid,
-	testSemaphoreKey = 'testObjectSem',
-	testMutexKey1 = 'testObjectMutex1',
-	testMutexKey2 = 'testObjectMutex2';
+	testSemaphoreKey = 'callbackTestObjectSem',
+	testMutexKey1 = 'callbackTestObjectMutex1',
+	testMutexKey2 = 'callbackTestObjectMutex2';
 
 describe('complicated scenario test(callback)', function(){
 	var RedisSharedObject = require('../lib'),
@@ -373,7 +373,7 @@ describe('complicated scenario test(callback)', function(){
 	}, 20000);
 
 	it(' - another mutext client setup', function(done){
-		RedisSharedObject().createMutexClient('toBeExpired', 10).then(function(anotherClient){
+		RedisSharedObject().createMutexClient('callbackTestToBeExpired', 10).then(function(anotherClient){
 			anotherClient.on('mutex_expired', function(result){
 				isAnotherClientReceivedMutexExpiredEvent = true;
 			});
@@ -384,8 +384,8 @@ describe('complicated scenario test(callback)', function(){
 
 	it('6. Mutex should be expired, and a waiting client should get another', function(done){
 		var isLocalInstanceReceivedMutexExpiredEvent = false;
-		redisSharedObject2.createMutexClient('toBeExpired', 1, function(err, waitingClient){
-			redisSharedObject1.createMutexClient('toBeExpired', 1, function(err, toBeExpiredSoon){
+		redisSharedObject2.createMutexClient('callbackTestToBeExpired', 1, function(err, waitingClient){
+			redisSharedObject1.createMutexClient('callbackTestToBeExpired', 1, function(err, toBeExpiredSoon){
 				toBeExpiredSoon.on('expired', function(expired_id){
 					isLocalInstanceReceivedMutexExpiredEvent = true;
 				});	

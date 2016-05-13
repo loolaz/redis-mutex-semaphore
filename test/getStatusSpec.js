@@ -3,8 +3,8 @@
 var async = require('async'),
 	Promise = require('bluebird'),
 	redis= require('redis'),
-	testSemaphoreKey = 'testObjectSem',
-	testMutexKey = 'testObjectMutex',
+	testSemaphoreKey = 'getStatusTestObjectSem',
+	testMutexKey = 'getStatusTestObjectMutex',
 	factoryList = [];
 
 describe('getStatus test', function(){
@@ -37,7 +37,7 @@ describe('getStatus test', function(){
 				done();
 			});
 			
-		}, 1500);
+		}, 500);
 	}, 120000);
 
 	it('2. Three client should accquire semaphore and other three should wait', function(done){
@@ -53,7 +53,7 @@ describe('getStatus test', function(){
 			});
 		}	
 		setTimeout(function(){
-			redisSemaphoreClient.getStatus(1500).then(function(result){
+			redisSemaphoreClient.getStatus(200).then(function(result){
 				expect(result.value).toEqual(0);
 				expect(result.waiting).toEqual(3);
 				expect(result.observing).toEqual(0);
@@ -62,7 +62,7 @@ describe('getStatus test', function(){
 				console.log('... observing : ' + result.observing);
 				done();
 			});
-		}, 1500);
+		}, 500);
 
 		
 	}, 120000);
@@ -89,7 +89,7 @@ describe('getStatus test', function(){
 				done();
 			});
 			
-		}, 1500);
+		}, 500);
 
 		
 	}, 120000);
@@ -114,7 +114,7 @@ describe('getStatus test', function(){
 
 	it('5. Now, there should be no waiting client any more', function(done){
 		setTimeout(function(){
-			factoryList[0].getSemaphoreClient(testSemaphoreKey).getStatus(1500, function(err, result){
+			factoryList[0].getSemaphoreClient(testSemaphoreKey).getStatus(200, function(err, result){
 				expect(result.value).toEqual(0);
 				expect(result.waiting).toEqual(0);
 				expect(result.observing).toEqual(0);
@@ -124,7 +124,7 @@ describe('getStatus test', function(){
 				done();
 			});
 			
-		}, 1500);
+		}, 500);
 	}, 120000);
 
 	it('6. Object factories have been finalized', function(done){
@@ -132,11 +132,11 @@ describe('getStatus test', function(){
 			for(var i = 0; i < 10; i++){
 				factoryList[i].end();
 			}
-		}, 2000);
+		}, 1000);
 		setTimeout(function(){
 			console.log('6. Object factories have been finalized');
 			done();
-		}, 3000);
+		}, 2000);
 	}, 14000);
 
 });
