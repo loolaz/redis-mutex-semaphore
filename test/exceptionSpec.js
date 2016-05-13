@@ -192,6 +192,7 @@ describe('exceptional scenario test', function(){
 	it('exceptional case 12 - semaphore key has been accidently deleted', function(done){
 		var anotherfactory = RedisSharedObject();
 		anotherfactory.createSemaphoreClient(testSemaphoreKey, 10).then(function(redisSemaphoreClient){
+			redisSemaphoreClient.setNewConnectionPerTransaction(true);
 			redisSemaphoreClient.client.del("sema:exceptionTestObjectSem", function(err, result){	
 				redisSemaphoreClient.get(function(err, result){
 					expect(err.code).toEqual('ENOTFOUNDKEY');
@@ -261,7 +262,22 @@ describe('exceptional scenario test', function(){
 		});
 	});
 
-	it('exceptional case 17 - end while using mutex', function(done){
+	it('exceptional case 17 - try to unlock after mutex key was deleted', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createMutexClient(testMutexKey).then(function(redisMutexClient){
+			redisMutexClient.client.del("mutex:exceptionTestObjectMutex", function(err, result){	
+				redisMutexClient.rel(function(err, result){
+					expect(result).toEqual(false);
+					done();
+				});
+			});		
+
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 18 - end while using mutex', function(done){
 		var redisMutexClient = factory.getMutexClient(testMutexKey);
 		redisMutexClient.get(function(err, result){
 			factory.end();

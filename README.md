@@ -70,6 +70,7 @@ factory.createSemaphoreClient('key', 1, function(err, client){ // atomic operati
 
 In order to get around this problem, you can change the redis connection setting with the method below.
 **Semaphore.setNewConnectionPerTransaction(boolean flag)**
+
 This method allows us to create a temporary redis connection whenever trying to accquire semaphore and transaction will be guaranteed with a little delay of new connection.
 
 ```js
@@ -151,7 +152,7 @@ The order of dispatching waiting clients is determined by considering their wait
 priority argument takes follows:
  - require('redis-mutex-semaphore').priority.HIGH : immediate execution(default)
  - require('redis-mutex-semaphore').priority.NORMAL : random delay between 10~30ms
- - require('redis-mutex-semaphore').priority.LOW : random delay 40~60ms
+ - require('redis-mutex-semaphore').priority.LOW : random delay between 40~60ms
 
 You can change default priority with **Semaphore/Mutex.setDefaultPriority(priority)** method.
  
