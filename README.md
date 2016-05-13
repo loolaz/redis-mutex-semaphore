@@ -281,7 +281,7 @@ Semaphore/Mutex.observing(10 /* timeout : second */).then(function(result){
 This method returns value of mutex lock or semaphore's count and the sum of waiting/observing clients with a short delay.
 [timeout] argument is optional, and unit is millisecond.
 
-**Note:** It just broadcasts request for status checking to every subscribing clients and waits for their responses until timeout is reached. So if clients are spread out across other processes or network, the timeout value should be big enough to get all of the responses. The default value is 300 - this value is adjusted empirically by testing on the environment that the redis server is not far away from the service using this module geographically. However your environment may be different too.
+**Note:** It just broadcasts request for status checking to every subscribing clients and waits for their responses until timeout is reached. So if clients are spread out across other processes or network, the timeout value should be big enough to get all of the responses. The default value is 300 - this value is adjusted empirically by testing on the environment that the redis server is not far away from the service using this module geographically.
 
 ```js
 Semaphore/Mutex.getStaus([timeout, ] function callback(err, result){}) // callback
@@ -319,7 +319,7 @@ Semaphore/Mutex.resetWithPublish().then(function(result){}) // promise
 You can register listeners to the following events.
 
 ```js
-Semaphore/Mutex.on('semaphore_acquired', function(count){
+Semaphore/Mutex.on(event_name, function(arg){
   // doing something
 });
 ```
