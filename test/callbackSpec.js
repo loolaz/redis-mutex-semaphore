@@ -386,7 +386,7 @@ describe('complicated scenario test(callback)', function(){
 		var isLocalInstanceReceivedMutexExpiredEvent = false;
 		redisSharedObject2.createMutexClient('callbackTestToBeExpired', 1, function(err, waitingClient){
 			redisSharedObject1.createMutexClient('callbackTestToBeExpired', 1, function(err, toBeExpiredSoon){
-				toBeExpiredSoon.on('expired', function(expired_id){
+				toBeExpiredSoon.on('expired', function(result){
 					isLocalInstanceReceivedMutexExpiredEvent = true;
 				});	
 				toBeExpiredSoon.get(function(err, result){
