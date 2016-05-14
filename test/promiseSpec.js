@@ -345,8 +345,7 @@ describe('complicated scenario test(promise)', function(){
 		var watingClientPromise = redisSharedObject2.createMutexClient('promiseTestToBeExpired', 1, function(err, waitingClient){
 			
 			toBeExpiredSoonPromise.then(function(mutexClient){
-				mutexClient.on('expired', function(expired_id){
-					console.log('... ' + expired_id + ' has been expired');
+				mutexClient.on('expired', function(result){
 				});
 
 				setTimeout(function(){
