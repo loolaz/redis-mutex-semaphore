@@ -288,6 +288,7 @@ describe('complicated scenario test(callback)', function(){
 			},
 			function(callback){
 				redisMutex2.observing(1, function(err, result){
+console.log(result);
 					if(err)
 						console.log('... err while observing : ' + err);
 					expect(err.code).toEqual('ETIMEDOUT');
@@ -386,7 +387,7 @@ describe('complicated scenario test(callback)', function(){
 		var isLocalInstanceReceivedMutexExpiredEvent = false;
 		redisSharedObject2.createMutexClient('callbackTestToBeExpired', 1, function(err, waitingClient){
 			redisSharedObject1.createMutexClient('callbackTestToBeExpired', 1, function(err, toBeExpiredSoon){
-				toBeExpiredSoon.on('expired', function(expired_id){
+				toBeExpiredSoon.on('expired', function(result){
 					isLocalInstanceReceivedMutexExpiredEvent = true;
 				});	
 				toBeExpiredSoon.get(function(err, result){
@@ -408,8 +409,6 @@ describe('complicated scenario test(callback)', function(){
 					setTimeout(function(){
 						expect(isAnotherClientReceivedMutexExpiredEvent).toEqual(true);
 						expect(isLocalInstanceReceivedMutexExpiredEvent).toEqual(true);
-						redisSharedObject1.end();
-						redisSharedObject2.end();
 						done();
 					}, 2000);
 				});
@@ -417,5 +416,35 @@ describe('complicated scenario test(callback)', function(){
 			});
 		});
 	}, 20000);
+
+	it('6. Mutex should be expired, and a waiting client should get another', function(done){
+		var isLocalInstanceReceivedMutexExpiredEvent = false;
+		redisSharedObject1.createMutexClient('callbackTestToBeExpired', 1, function(err, toBeExpiredSoon){
+			toBeExpiredSoon.on('expired', function(result){
+				isLocalInstanceReceivedMutexExpiredEvent = true;
+			});	
+			toBeExpiredSoon.get(function(err, newid){
+				if(err)
+					console.log('... err while waiting(5) : ' + err);
+				else{
+					toBeExpiredSoon.extend(newid, 1, function(err, result){
+						expect(result).toEqual(true);
+						expect(isLocalInstanceReceivedMutexExpiredEvent).toEqual(false);
+					});
+				}
+				setTimeout(function(){
+					expect(isLocalInstanceReceivedMutexExpiredEvent).toEqual(false);
+					setTimeout(function(){
+						expect(isLocalInstanceReceivedMutexExpiredEvent).toEqual(true);
+						redisSharedObject1.end();
+						redisSharedObject2.end();
+						done();
+					}, 1500);
+				}, 1500);
+			});
+
+		});
+	}, 20000);
+
 
 });

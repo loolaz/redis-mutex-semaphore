@@ -341,12 +341,13 @@ describe('complicated scenario test(promise)', function(){
 	}, 20000);
 
 	it('6. Mutex should be expired, and a waiting client should get another', function(done){
+		var isLocalInstanceReceivedMutexExpiredEvent = false;
 		var toBeExpiredSoonPromise = redisSharedObject1.createMutexClient('promiseTestToBeExpired', 1);
 		var watingClientPromise = redisSharedObject2.createMutexClient('promiseTestToBeExpired', 1, function(err, waitingClient){
 			
 			toBeExpiredSoonPromise.then(function(mutexClient){
-				mutexClient.on('expired', function(expired_id){
-					console.log('... ' + expired_id + ' has been expired');
+				mutexClient.on('expired', function(result){
+					isLocalInstanceReceivedMutexExpiredEvent = true;
 				});
 
 				setTimeout(function(){
@@ -361,6 +362,7 @@ describe('complicated scenario test(promise)', function(){
 				}).then(function(){
 					return waitingClient.waitingFor(10).then(function(result){
 						expect(result).not.toBe(null);
+						expect(isLocalInstanceReceivedMutexExpiredEvent).toEqual(true);
 						if(result)
 							console.log('... previous lock has been expired, and got new one : ' + result);
 					});				
