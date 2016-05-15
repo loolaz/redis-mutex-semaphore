@@ -300,7 +300,7 @@ sample return value
 
 ```
 
-result object contains value, the number of waiting, the number of observing
+Result object contains value, the number of waiting, the number of observing
 - for mutex, value is mutex_id
 - for semaphore, value is current semaphore count
 
@@ -314,14 +314,14 @@ Semaphore/Mutex.resetWithPublish(function callback(err, result){}) // callback
 Semaphore/Mutex.resetWithPublish().then(function(result){}) // promise
 ```
 
-**extend mutex timeout(Redis version is 2.6.0+)**
-
-if timeout is extended, result is true, otherwise false.
+**Extend mutex timeout(Redis version is 2.6.0+)**
 
 ```js
 Mutex.extend(mutex_id, more, function callback(err, result){}) // callback
 Mutex.extend(mutex_id, more).then(function(result){}) // promise
 ```
+ - result : true for success, otherwise false.
+
 
 ```js
 factory.createMutexClient('key', 10); // timeout is set to 10 sec.
