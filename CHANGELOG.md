@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.2.11
+## 0.2.12
 
 * Added Mutex extend method(Redis 2.6.0+)
 * Added changelog

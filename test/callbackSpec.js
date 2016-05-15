@@ -288,7 +288,6 @@ describe('complicated scenario test(callback)', function(){
 			},
 			function(callback){
 				redisMutex2.observing(1, function(err, result){
-console.log(result);
 					if(err)
 						console.log('... err while observing : ' + err);
 					expect(err.code).toEqual('ETIMEDOUT');
@@ -427,6 +426,7 @@ console.log(result);
 				if(err)
 					console.log('... err while waiting(5) : ' + err);
 				else{
+					expect(toBeExpiredSoon.luaScripts.extend.sha).toEqual(undefined);
 					toBeExpiredSoon.extend(newid, 1, function(err, result){
 						expect(result).toEqual(true);
 						expect(isLocalInstanceReceivedMutexExpiredEvent).toEqual(false);
@@ -436,16 +436,21 @@ console.log(result);
 					expect(isLocalInstanceReceivedMutexExpiredEvent).toEqual(false);
 					setTimeout(function(){
 						expect(isLocalInstanceReceivedMutexExpiredEvent).toEqual(true);
-						redisSharedObject1.end();
-						redisSharedObject2.end();
-						done();
+						toBeExpiredSoon.get(function(err, newidAgain){
+							expect(toBeExpiredSoon.luaScripts.extend.sha).not.toBe(null);
+							toBeExpiredSoon.extend(newidAgain, 1, function(err, result){
+								expect(result).toEqual(true);
+								redisSharedObject1.end();
+								redisSharedObject2.end();
+								done();
+							});
+						});	
 					}, 1500);
 				}, 1500);
 			});
 
 		});
 	}, 20000);
-
 
 });
 
