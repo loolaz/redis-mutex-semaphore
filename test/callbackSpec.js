@@ -417,7 +417,7 @@ console.log(result);
 		});
 	}, 20000);
 
-	it('6. Mutex should be expired, and a waiting client should get another', function(done){
+	it('7. Mutex timeout should be extended to 2 sec.', function(done){
 		var isLocalInstanceReceivedMutexExpiredEvent = false;
 		redisSharedObject1.createMutexClient('callbackTestToBeExpired', 1, function(err, toBeExpiredSoon){
 			toBeExpiredSoon.on('expired', function(result){
@@ -448,3 +448,4 @@ console.log(result);
 
 
 });
+

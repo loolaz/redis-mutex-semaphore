@@ -277,7 +277,109 @@ describe('exceptional scenario test', function(){
 		});
 	});
 
-	it('exceptional case 18 - end while using mutex', function(done){
+	it('exceptional case 18 - mutex extend method should return error', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
+			redisMutexClient.get(function(err, mutex){
+				anotherfactory.client.quit();
+				redisMutexClient.extend(mutex, 10, function(err, result){
+					expect(err).not.toBe(null);
+					done();
+				});	
+			});
+				
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 19 - mutex extend method should return false', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
+			redisMutexClient.get(function(err, mutex){
+				redisMutexClient._debug_resetMutexTimer();
+				redisMutexClient.extend(mutex, 10).then(function(result){
+					expect(result).toEqual(false);
+					redisMutexClient.get(function(err, mutexAgain){
+						expect(mutexAgain).not.toBe(null);
+						done();
+					});
+				});	
+			});
+				
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 20 - mutex extend method should return error', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
+			redisMutexClient.get(function(err, mutex){
+				redisMutexClient._debug_resetMutexTimer();
+				anotherfactory.client.quit();
+				redisMutexClient.extend(mutex, 10).catch(function(err){
+					expect(err).not.toBe(null);
+					done();
+				});	
+			});
+				
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 21 - mutex extend method should return false', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
+			redisMutexClient.get(function(err, mutex){
+				redisMutexClient._debug_resetMutexTimer();
+				redisMutexClient.key = "null";
+				redisMutexClient.extend(mutex, 10).then(function(result){
+					expect(result).toEqual(false);
+					done();
+				});	
+			});
+				
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 22 - mutex extend method should return error', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
+			redisMutexClient.get(function(err, mutex){
+				redisMutexClient._debug_resetMutexTimer();
+				anotherfactory.client.quit();
+				redisMutexClient.extend(mutex, 10).catch(function(err){
+					expect(err).not.toBe(null);
+					done();
+				});	
+			});
+				
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 23 - mutex extend method should return false', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
+			redisMutexClient.get(function(err, mutex){
+				redisMutexClient._debug_resetMutexTimer();
+				redisMutexClient.extend("wrongid", 10).then(function(result){
+					expect(result).toEqual(false);
+					done();
+				});	
+			});
+				
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 24 - end while using mutex', function(done){
 		var redisMutexClient = factory.getMutexClient(testMutexKey);
 		redisMutexClient.get(function(err, result){
 			factory.end();

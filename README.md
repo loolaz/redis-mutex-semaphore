@@ -5,7 +5,7 @@
 [![downloads](https://img.shields.io/npm/dm/redis-mutex-semaphore.svg?style=flat-square)](http://npm-stat.com/charts.html?package=redis-mutex-semaphore&from=2016-05-04)
 
 # redis-mutex-semaphore
-This is a mutex and semaphore library which is very simply implemented by using some basic redis commands such as multi/exec(semaphore) and setnx(mutex). So it may not be appropriate for applications having complicated concurrency requirements.
+This is a mutex and semaphore library which is very simply implemented by using some basic redis commands such as multi/exec(semaphore) and setnx(mutex).
 
 ```sh
 npm install redis-mutex-semaphore
@@ -314,6 +314,37 @@ Semaphore/Mutex.resetWithPublish(function callback(err, result){}) // callback
 Semaphore/Mutex.resetWithPublish().then(function(result){}) // promise
 ```
 
+**extend mutex timeout(Redis version is 2.6.0+)**
+
+if timeout is extended, result is true, otherwise false.
+
+```js
+Mutex.extend(mutex_id, more, function callback(err, result){}) // callback
+Mutex.extend(mutex_id, more).then(function(result){}) // promise
+```
+
+```js
+factory.createMutexClient('key', 10); // timeout is set to 10 sec.
+
+Mutex.get(function(err, mutex_id){  // mutex is valid for 10 sec.
+  if(mutex_id){
+    // doing something with mutex for N sec.
+    Mutex.extend(mutex_id, 2, function(err, result){ // at this point, mutex is valid for 10 - N sec.
+      if(result){ // succeeded to extend 
+        // doing something more... 
+        // now mutex will is valid for (10 - N + 2) sec.
+      }
+      else{ // faild to extend
+        // mutex is already expired or failed to extend for other reasons
+      }
+    });
+  }
+  else {
+    // failed to get mutex
+  }
+});
+```
+
 ## Events
 
 You can register listeners to the following events.
@@ -326,15 +357,19 @@ Semaphore/Mutex.on(event_name, function(arg){
 
 | Name                | Description   | 
 |---------------------|---------------|
-| semaphore_acquired  | fired when semaphore is acquired. it returns remained semaphore count | 
-| semaphore_released  | fired when semaphore is released. it returns remained semaphore count       | 
-| mutex_locked        | fired when mutex is locked. it returns mutex id | 
-| mutex_unlocked      | fired when mutex is acquired. it always returns 1      | 
-| mutex_expired       | fired when mutex is expired. it always returns 1. this event is sent to every clients      |
-| expired             | fired when mutex is expired. it always returns 1. this event is only sent to the client which has locked    |
+| semaphore_acquired  | fired with the number of remained semaphore when semaphore is acquired. | 
+| semaphore_released  | fired with the number of remained semaphore when semaphore is released.   | 
+| mutex_locked        | fired with mutex id when mutex is locked. | 
+| mutex_unlocked      | fired when getting a lock. it always returns 1.   | 
+| mutex_expired       | fired when releasing a lock. it always returns 1. this event is sent to every clients.      |
+| expired             | fired when mutex is expired. it always returns 1. this event is only sent to the client which has the lock.    |
 
 ## Run Tests
 
 ```
 npm test
 ```
+
+## Changes
+see the [CHANGELOG](https://github.com/loolaz/redis-mutex-semaphore/blob/master/CHANGELOG.md)
+
