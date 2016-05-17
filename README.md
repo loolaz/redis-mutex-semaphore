@@ -110,9 +110,9 @@ The order of dispatching waiting clients is determined by considering their wait
  - err(semaphore/mutex) : ETIMEDOUT error or other errors returned
 
 priority argument takes follows:
- - require('redis-mutex-semaphore').priority.HIGH : immediate execution(default)
- - require('redis-mutex-semaphore').priority.NORMAL : random delay between 10~30ms
- - require('redis-mutex-semaphore').priority.LOW : random delay between 40~60ms
+ - factory.priority.HIGH : immediate execution(default)
+ - factory.priority.NORMAL : random delay between 10~30ms
+ - factory.priority.LOW : random delay between 40~60ms
 
 You can change default priority with **Semaphore/Mutex.setDefaultPriority(priority)** method.
  
