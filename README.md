@@ -29,7 +29,8 @@ npm install redis-mutex-semaphore
 Whenever createXXXClient method is called, the redis key that you have passed through is also reset. So please be careful that you do not lose any context of these objects by mistakenly calling this method with the same key again in other places(other codes in the same process/other processes/other machines) while using the mutex/semaphore with the key.
 
 ```js
-var factory = require('redis-mutex-semaphore')({
+var redisSharedObject = require('redis-mutex-semaphore');
+var factory = redisSharedObject({
   		host: '127.0.0.1',
   		port: 6379,
   		db: 1
@@ -37,7 +38,7 @@ var factory = require('redis-mutex-semaphore')({
   	
   	// or you can reuse existing redis connection(the redis connection to be reused must have a selected db)
   
-var factory = require('redis-mutex-semaphore')(redisClient);	
+var factory = redisSharedObject(redisClient);	
 
 factory.createSemaphoreClient('Key', 3 /* initial semaphore count */); // returns promise if callback is omitted
 factory.createMutexClient('Key', 10 /* ttl : second */);  // returns promise if callback is omitted
@@ -110,9 +111,9 @@ The order of dispatching waiting clients is determined by considering their wait
  - err(semaphore/mutex) : ETIMEDOUT error or other errors returned
 
 priority argument takes follows:
- - factory.priority.HIGH : immediate execution(default)
- - factory.priority.NORMAL : random delay between 10~30ms
- - factory.priority.LOW : random delay between 40~60ms
+ - redisSharedObject.priority.HIGH : immediate execution(default)
+ - redisSharedObject.priority.NORMAL : random delay between 10~30ms
+ - redisSharedObject.priority.LOW : random delay between 40~60ms
 
 You can change default priority with **Semaphore/Mutex.setDefaultPriority(priority)** method.
  
@@ -121,7 +122,7 @@ You can change default priority with **Semaphore/Mutex.setDefaultPriority(priori
  - err(semaphore/mutex) : ETIMEDOUT error or other errors returned
  
 ```js
-var factory = require('redis-mutex-semaphore')();
+var redisSharedObject = require('redis-mutex-semaphore');
 
 ...
 
@@ -130,7 +131,7 @@ Semaphore/Mutex.waitingFor(10 /* timeout : second */, function(err, result){
     // doing something with semaphore/lock
 });
 
-Semaphore/Mutex.waitingForWithPriority(factory.priority.NORMAL, 10 /* timeout : second */, function(err, result){
+Semaphore/Mutex.waitingForWithPriority(redisSharedObject.priority.NORMAL, 10 /* timeout : second */, function(err, result){
   if(result)
     // doing something with semaphore/lock
 });
@@ -208,7 +209,7 @@ You can change default priority with **Semaphore/Mutex.setDefaultPriority(priori
  - same as callback version
 
 ```js
-var factory = require('redis-mutex-semaphore')();
+var redisSharedObject = require('redis-mutex-semaphore');
 
 ...
 
@@ -219,7 +220,7 @@ Semaphore/Mutex.waitingFor(10 /* timeout : second */).then(function(result){
   // e could be timed out error or others
 });
 
-Semaphore/Mutex.waitingForWithPriority(factory.priority.NORMAL, 10 /* timeout : second */).then(function(result){
+Semaphore/Mutex.waitingForWithPriority(redisSharedObject.priority.NORMAL, 10 /* timeout : second */).then(function(result){
   if(result)
     // doing something with semaphore/lock
 }).catch(function(e){
