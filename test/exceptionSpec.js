@@ -24,16 +24,11 @@ describe('exceptional scenario test', function(){
 		var anotherfactory = RedisSharedObject();
 		anotherfactory.createSemaphoreClient(testSemaphoreKey, 10).then(function(redisSemaphoreClient){
 			anotherfactory.client.quit();
-			redisSemaphoreClient.setNewConnectionPerTransaction(true);
 			redisSemaphoreClient.get(function(err, result){
-				expect(err).toEqual(null);
-				redisSemaphoreClient.setNewConnectionPerTransaction(false);
-				redisSemaphoreClient.get(function(err, result){
-					expect(err).not.toBe(null);
-					setTimeout(function(){
-						done();
-					}, 1500);
-				});
+				expect(err).not.toBe(null);
+				setTimeout(function(){
+					done();
+				}, 1500);
 
 			});			
 
@@ -192,7 +187,6 @@ describe('exceptional scenario test', function(){
 	it('exceptional case 12 - semaphore key has been accidently deleted', function(done){
 		var anotherfactory = RedisSharedObject();
 		anotherfactory.createSemaphoreClient(testSemaphoreKey, 10).then(function(redisSemaphoreClient){
-			redisSemaphoreClient.setNewConnectionPerTransaction(true);
 			redisSemaphoreClient.client.del("sema:exceptionTestObjectSem", function(err, result){	
 				redisSemaphoreClient.get(function(err, result){
 					expect(err.code).toEqual('ENOTFOUNDKEY');
@@ -297,7 +291,7 @@ describe('exceptional scenario test', function(){
 		var anotherfactory = RedisSharedObject();
 		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
 			redisMutexClient.get(function(err, mutex){
-				redisMutexClient._debug_resetMutexTimer();
+				redisMutexClient._debug_resetMutexTimer(mutex);
 				redisMutexClient.extend(mutex, 10).then(function(result){
 					expect(result).toEqual(false);
 					redisMutexClient.get(function(err, mutexAgain){
@@ -316,7 +310,7 @@ describe('exceptional scenario test', function(){
 		var anotherfactory = RedisSharedObject();
 		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
 			redisMutexClient.get(function(err, mutex){
-				redisMutexClient._debug_resetMutexTimer();
+				redisMutexClient._debug_resetMutexTimer(mutex);
 				anotherfactory.client.quit();
 				redisMutexClient.extend(mutex, 10).catch(function(err){
 					expect(err).not.toBe(null);
@@ -333,7 +327,7 @@ describe('exceptional scenario test', function(){
 		var anotherfactory = RedisSharedObject();
 		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
 			redisMutexClient.get(function(err, mutex){
-				redisMutexClient._debug_resetMutexTimer();
+				redisMutexClient._debug_resetMutexTimer(mutex);
 				redisMutexClient.key = "null";
 				redisMutexClient.extend(mutex, 10).then(function(result){
 					expect(result).toEqual(false);
@@ -350,7 +344,7 @@ describe('exceptional scenario test', function(){
 		var anotherfactory = RedisSharedObject();
 		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
 			redisMutexClient.get(function(err, mutex){
-				redisMutexClient._debug_resetMutexTimer();
+				redisMutexClient._debug_resetMutexTimer(mutex);
 				anotherfactory.client.quit();
 				redisMutexClient.extend(mutex, 10).catch(function(err){
 					expect(err).not.toBe(null);
@@ -367,7 +361,7 @@ describe('exceptional scenario test', function(){
 		var anotherfactory = RedisSharedObject();
 		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
 			redisMutexClient.get(function(err, mutex){
-				redisMutexClient._debug_resetMutexTimer();
+				redisMutexClient._debug_resetMutexTimer(mutex);
 				redisMutexClient.extend("wrongid", 10).then(function(result){
 					expect(result).toEqual(false);
 					done();
@@ -379,7 +373,23 @@ describe('exceptional scenario test', function(){
 		});
 	});
 
-	it('exceptional case 24 - end while using mutex', function(done){
+	it('exceptional case 24 - mutex resetWithPublish method should return error', function(done){
+		var anotherfactory = RedisSharedObject();
+		anotherfactory.createMutexClient(testMutexKey, 10).then(function(redisMutexClient){
+			redisMutexClient.get(function(err, mutex){
+				anotherfactory.client.quit();
+				redisMutexClient.resetWithPublish().catch(function(err){
+					expect(err).not.toBe(null);
+					done();
+				});	
+			});
+				
+		}).catch(function(err){
+			console.log(err);
+		});
+	});
+
+	it('exceptional case 25 - end while using mutex', function(done){
 		var redisMutexClient = factory.getMutexClient(testMutexKey);
 		redisMutexClient.get(function(err, result){
 			factory.end();

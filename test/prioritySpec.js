@@ -194,7 +194,6 @@ describe('priority based scheduling test', function(){
 		factoryList[0].createSemaphoreClient(testSemaphoreKey, 2).then(function(redisSemaphoreClient){
 			for(var i =0 ; i < 10 ; i++){
 				(function(i){
-					redisSemaphoreClient.setNewConnectionPerTransaction(true);		// should be true if clients with same redis connection want to accquire the same semaphore key	
 					redisSemaphoreClient.waitingForWithPriority(priList[i%3], 100, function(err, result){
 						if(err)
 							console.log(err);

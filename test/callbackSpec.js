@@ -234,7 +234,7 @@ describe('complicated scenario test(callback)', function(){
 
 	}, 20000);
 
-	it('4. One should get mutex, one should fail to lock, one will wait for mutext to be unlocked, and one will be timed out while waiting', function(done){
+	it('- Mutex setup : One should get mutex, one should fail to lock', function(done){
 		var redisMutex1 = redisSharedObject1.getMutexClient(testMutexKey1),
 			redisMutex2 = redisSharedObject2.getMutexClient(testMutexKey1);
 		async.parallel([
@@ -261,7 +261,16 @@ describe('complicated scenario test(callback)', function(){
 					}
 					callback(err, result);
 				});					
-			},
+			}
+		], function(err, result){
+			done();
+		});
+	});
+
+	it('4. One will wait for mutext to be unlocked, and one will be timed out while waiting', function(done){
+		var redisMutex1 = redisSharedObject1.getMutexClient(testMutexKey1),
+			redisMutex2 = redisSharedObject2.getMutexClient(testMutexKey1);
+		async.parallel([
 			function(callback){
 				redisMutex1.observing(8, function(err, released){
 					if(err)
@@ -271,7 +280,7 @@ describe('complicated scenario test(callback)', function(){
 					}
 					
 				});
-				callback(null, true);					
+				callback(null, true);
 			},
 			function(callback){
 				redisMutex2.waitingFor(1, function(err, result){
@@ -290,9 +299,11 @@ describe('complicated scenario test(callback)', function(){
 				redisMutex2.observing(1, function(err, result){
 					if(err)
 						console.log('... err while observing : ' + err);
+					else
+						console.log('... finished observing' + result);
 					expect(err.code).toEqual('ETIMEDOUT');
 				});
-				callback(null, true);					
+				callback(null, true);				
 			},
 			function(callback){
 				redisMutex1.waitingFor(8, function(err, result){

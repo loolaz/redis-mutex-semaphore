@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.3.0
+
+* Removed setNewConnectionPerTransaction method(You don't need to call this method any more in any case)
+* Changed minimum Redis version(2.2.0 => 2.6.0)
+* Fixed potential bugs in some test cases
+* Code Refactoring
+
 ## 0.2.12
 
 * Added Mutex extend method(Redis 2.6.0+)

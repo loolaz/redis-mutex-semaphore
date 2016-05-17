@@ -11,7 +11,7 @@ This is a mutex and semaphore library which is very simply implemented by using 
 npm install redis-mutex-semaphore
 ```
 
-**Note:** The minimum Redis version is 2.2.0+.
+**Note:** The minimum Redis version is 2.6.0+.
 
 ## Constructing Instances
 
@@ -48,49 +48,6 @@ var semaphoreClient = factory.getSemaphoreClient('Key'),
 factory.end(); 
 ```
 
-####Transaction and redis connection
-Semaphore is implemented by redis multi/exec commands and they work only for separate redis connections. If you don't reuse your existing redis connection when loading this module, we assume that there would be one redis connection per each request for semaphore.
-
-It means that if you try to accquire semaphore with the code below, atomic operation will not be guaranteed.
-
-```js
-var factory = require('redis-mutex-semaphore')();
-factory.createSemaphoreClient('key', 1, function(err, client){ // atomic operation is not guaranteed
-  client.waitingFor(10).then(function(result){
-    // do something 1
-  });
-  client.waitingFor(10).then(function(result){
-    // do something 2
-  });
-  client.waitingFor(10).then(function(result){
-    // do something 3
-  });
-});
-```
-
-In order to get around this problem, you can change the redis connection setting with the method below.
-**Semaphore.setNewConnectionPerTransaction(boolean flag)**
-
-This method allows us to create a temporary redis connection whenever trying to accquire semaphore and transaction will be guaranteed with a little delay of new connection.
-
-```js
-var factory = require('redis-mutex-semaphore')();
-factory.createSemaphoreClient('key', 1).then(function(client){
-  client.setNewConnectionPerTransaction(true); 
-  return Promise.resolve(client);
-}).then(function(clientWithNewSetting){ // atomic operation is now guaranteed in the shared redis connection.
-  clientWithNewSetting.waitingFor(10).then(function(result){
-    // do something 1
-  });
-  clientWithNewSetting.waitingFor(10).then(function(result){
-    // do something 2
-  });
-  clientWithNewSetting.waitingFor(10).then(function(result){
-    // do something 3
-  });
-});
-```
-
 ## Method Usage
 
 ### 1. Using CallBack
@@ -101,6 +58,7 @@ Same as creating xxxClient methods, you can call methods with callbacks.
 
 **Semaphore.get(function callback(err, result){})**
  - result : true for success / false for fail to accquire
+ - if key doesn't exist, ENOTFOUNDKEY error code is returned
  
 **Semaphore.rel(function callback(err, result){})**
  - result : the number of remained semaphore for success
@@ -119,8 +77,9 @@ semaphore.get(function(err, result){
 **Mutex.get(function callback(err, result){})**
  - result : mutexid(uuid v4) for success / null for failed to lock
  
-**Mutex.rel(function callback(err, result){})**
+**Mutex.rel(mutexID, function callback(err, result){})**
  - result : true for sucess / false for fail to delete key
+ - if incorrect mutex id is passed, ENOACCESS error code is returned
 
 ```js
 mutex.get(function(err, mutexID){
@@ -143,11 +102,12 @@ The order of dispatching waiting clients is determined by considering their wait
 **Semaphore/Mutex.waitingFor(timeout, function callback(err, result){})**
  - result(semaphore) : true for success / false for fail to accquire
  - result(mutex) : mutex id for success / null for fail to lock
- - err(semaphore/mutex) : timedout error or other errors returned
+ - err(semaphore/mutex) : ETIMEDOUT error or other errors returned
 
 **Semaphore/Mutex.waitingForWithPriority(priority, timeout, function(err, result){})**
  - same as waitingFor except priority
  - client waits for semaphore/mutex with its own priority and will be scheduled according to it.
+ - err(semaphore/mutex) : ETIMEDOUT error or other errors returned
 
 priority argument takes follows:
  - require('redis-mutex-semaphore').priority.HIGH : immediate execution(default)
@@ -157,8 +117,8 @@ priority argument takes follows:
 You can change default priority with **Semaphore/Mutex.setDefaultPriority(priority)** method.
  
 **Semaphore/Mutex.observing(timeout, function callback(err, result){})**
- - result(semaphore/mutex) : true for success / false for timedout or errors 
- - err(semaphore/mutex) : timedout error or other errors returned
+ - result(semaphore/mutex) : true for success / false when ETIMEDOUT or other errors 
+ - err(semaphore/mutex) : ETIMEDOUT error or other errors returned
  
 ```js
 var factory = require('redis-mutex-semaphore')();
@@ -210,10 +170,10 @@ semaphore.get().then(function(result){
 });
 ```
 
-**Mutex.get().then(function(mutex_id){})**
+**Mutex.get().then(function(mutexID){})**
  - same as callback version
  
-**Mutex.rel(mutex_id).then(function(result){})**
+**Mutex.rel(mutexID).then(function(result){})**
  - same as callback version
  
 ```js
@@ -301,7 +261,7 @@ sample return value
 ```
 
 Result object contains value, the number of waiting, the number of observing
-- for mutex, value is mutex_id
+- for mutex, value is mutex's id
 - for semaphore, value is current semaphore count
 
 **Reset semaphore/mutex**
@@ -314,11 +274,11 @@ Semaphore/Mutex.resetWithPublish(function callback(err, result){}) // callback
 Semaphore/Mutex.resetWithPublish().then(function(result){}) // promise
 ```
 
-**Extend mutex timeout(Redis version is 2.6.0+)**
+**Extend mutex timeout**
 
 ```js
-Mutex.extend(mutex_id, more, function callback(err, result){}) // callback
-Mutex.extend(mutex_id, more).then(function(result){}) // promise
+Mutex.extend(mutexID, more, function callback(err, result){}) // callback
+Mutex.extend(mutexID, more).then(function(result){}) // promise
 ```
  - result : true for success, otherwise false.
 
@@ -326,10 +286,10 @@ Mutex.extend(mutex_id, more).then(function(result){}) // promise
 ```js
 factory.createMutexClient('key', 10); // timeout is set to 10 sec.
 
-Mutex.get(function(err, mutex_id){  // mutex is valid for 10 sec.
-  if(mutex_id){
+Mutex.get(function(err, mutexID){  // mutex's is valid for 10 sec.
+  if(mutexID){
     // doing something with mutex for N sec.
-    Mutex.extend(mutex_id, 2, function(err, result){ // at this point, mutex is valid for 10 - N sec.
+    Mutex.extend(mutexID, 2, function(err, result){ // at this point, mutex is valid for 10 - N sec.
       if(result){ // succeeded to extend 
         // doing something more... 
         // now mutex will is valid for (10 - N + 2) sec.
@@ -367,6 +327,8 @@ Semaphore/Mutex.on(event_name, function(arg){
 ## Run Tests
 
 ```
+git clone git@github.com:loolaz/redis-mutex-semaphore.git
+npm insall
 npm test
 ```
 

@@ -18,7 +18,6 @@ describe('complicated scenario test(promise)', function(){
 		redisSharedObject2 = RedisSharedObject();
 
 		redisSharedObject1.createSemaphoreClient(testSemaphoreKey, 3).then(function(client){
-			client.setNewConnectionPerTransaction(true); // should be true if clients with same redis connection want to accquire the same semaphore key	
 		});
 		redisSharedObject1.createMutexClient(testMutexKey1, 10);
 
@@ -214,8 +213,7 @@ describe('complicated scenario test(promise)', function(){
 
 	}, 20000);
 
-
-	it('4. One should get mutex, one should fail to lock, one will wait for mutext to be unlocked, and one will be timed out while waiting', function(done){
+	it('- Mutex setup : One should get mutex, one should fail to lock', function(done){
 		var redisMutex1 = redisSharedObject1.getMutexClient(testMutexKey1),
 			redisMutex2 = redisSharedObject2.getMutexClient(testMutexKey1);
 		async.parallel([
@@ -240,14 +238,26 @@ describe('complicated scenario test(promise)', function(){
 					console.log(err);
 					callback(err, null);
 				});					
-			},
+			}
+		],function(err, result){
+			setTimeout(function(){
+				done();
+			}, 500);
+		});
+	});
+
+
+	it('4. One will wait for mutext to be unlocked, and one will be timed out while waiting', function(done){
+		var redisMutex1 = redisSharedObject1.getMutexClient(testMutexKey1),
+			redisMutex2 = redisSharedObject2.getMutexClient(testMutexKey1);
+		async.parallel([
 			function(callback){
 				redisMutex1.observing(8).then(function(released){
 					console.log('... finished observing');
 				}).catch(function(err){
 					console.log('... err while observing : ' + err);
 				});
-				callback(null, true);					
+				callback(null, true);
 			},
 			function(callback){
 				redisMutex2.waitingFor(1).then(function(result){
@@ -277,7 +287,7 @@ describe('complicated scenario test(promise)', function(){
 						console.log('... err while observing : ' + err);
 					expect(err.code).toEqual('ETIMEDOUT');
 				});
-				callback(null, true);					
+				callback(null, true);			
 			}
 			],function(err, result){
 				setTimeout(function(){
