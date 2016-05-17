@@ -328,7 +328,7 @@ Semaphore/Mutex.on(event_name, function(arg){
 
 ```
 git clone git@github.com:loolaz/redis-mutex-semaphore.git
-npm insall
+npm install
 npm test
 ```
 
