@@ -3,6 +3,8 @@
 ## 0.3.1
 
 * Fixed potential buts in some test cases
+* Modified incorrect README instruction
+* Modified ci configuration
 
 ## 0.3.0
 
