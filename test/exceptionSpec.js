@@ -260,7 +260,7 @@ describe('exceptional scenario test', function(){
 		var anotherfactory = RedisSharedObject();
 		anotherfactory.createMutexClient(testMutexKey).then(function(redisMutexClient){
 			redisMutexClient.client.del("mutex:exceptionTestObjectMutex", function(err, result){	
-				redisMutexClient.rel(function(err, result){
+				redisMutexClient.rel(testMutexKey, function(err, result){
 					expect(result).toEqual(false);
 					done();
 				});

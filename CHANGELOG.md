@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.3.1
+
+* Fixed potential buts in some test cases
+
 ## 0.3.0
 
 * Removed setNewConnectionPerTransaction method(You don't need to call this method any more in any case)
