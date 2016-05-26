@@ -16,7 +16,7 @@ describe('priority based scheduling test', function(){
 			count : 0,
 			name : 'HIGH'
 		},
-		'10' : {
+		'15' : {
 			count : 0,
 			name : 'NORMAL',
 		},

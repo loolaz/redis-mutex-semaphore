@@ -5,7 +5,7 @@
 [![npm version](https://badge.fury.io/js/redis-mutex-semaphore.svg)](http://badge.fury.io/js/redis-mutex-semaphore)
 
 # redis-mutex-semaphore
-This is a mutex and semaphore library which is very simply implemented by using some basic redis commands such as multi/exec(semaphore) and setnx(mutex).
+This is a mutex and semaphore library which is simply implemented by using basic redis commands.
 
 ```sh
 npm install redis-mutex-semaphore
@@ -15,14 +15,14 @@ npm install redis-mutex-semaphore
 
 ## Constructing Instances
 
-**Semaphore.createSemaphoreClient(key, count, [function callback(err, result){}])**
+**factory.createSemaphoreClient(key, count, [function callback(err, result){}])**
 
-**or Semaphore.createSemaphoreClient(key, count).then(function(result){})**
+**or factory.createSemaphoreClient(key, count).then(function(result){})**
 - result : semaphoreClient object for success / null for fail
 
-**Mutex.createMutexClient(key, ttl, [function callback(err, result){}])**
+**factory.createMutexClient(key, ttl, [function callback(err, result){}])**
 
-**or Mutex.createMutexClient(key, ttl).then(function(result){})**
+**or factory.createMutexClient(key, ttl).then(function(result){})**
 
 - result : mutexClient object for success / null for fail
 
@@ -57,36 +57,36 @@ Same as creating xxxClient methods, you can call methods with callbacks.
 
 #### 1.1. get & release method
 
-**Semaphore.get(function callback(err, result){})**
+**semaphoreClient.get(function callback(err, result){})**
  - result : true for success / false for fail to accquire
  - if key doesn't exist, ENOTFOUNDKEY error code is returned
  
-**Semaphore.rel(function callback(err, result){})**
+**semaphoreClient.rel(function callback(err, result){})**
  - result : the number of remained semaphore for success
 
 ```js
-semaphore.get(function(err, result){
+semaphoreClient.get(function(err, result){
   if(result){
     // doing something with semaphore
-    semaphore.rel(function(err, result){
+    semaphoreClient.rel(function(err, result){
   
     });
   }
 });
 ```
 
-**Mutex.get(function callback(err, result){})**
+**mutexClient.get(function callback(err, result){})**
  - result : mutexid(uuid v4) for success / null for failed to lock
  
-**Mutex.rel(mutexID, function callback(err, result){})**
+**mutexClient.rel(mutexID, function callback(err, result){})**
  - result : true for sucess / false for fail to delete key
  - if incorrect mutex id is passed, ENOACCESS error code is returned
 
 ```js
-mutex.get(function(err, mutexID){
+mutexClient.get(function(err, mutexID){
   if(mutexID){
     //doing something with lock
-    mutex.rel(mutexID, function(err, result){
+    mutexClient.rel(mutexID, function(err, result){
   
     });
   }
@@ -100,24 +100,24 @@ The difference between them is that waitingFor is blocked until getting a lock o
 
 The order of dispatching waiting clients is determined by considering their waiting priorities. In the case of the redis client having multiple requests sharing the same connection, FIFO(first in, first out) policy is also applied to the waiting queue. Other observing clients and event listeners are not affected by this scheduling policy.
 
-**Semaphore/Mutex.waitingFor(timeout, function callback(err, result){})**
+**semaphoreClient/mutexClient.waitingFor(timeout, function callback(err, result){})**
  - result(semaphore) : true for success / false for fail to accquire
  - result(mutex) : mutex id for success / null for fail to lock
  - err(semaphore/mutex) : ETIMEDOUT error or other errors returned
 
-**Semaphore/Mutex.waitingForWithPriority(priority, timeout, function(err, result){})**
+**semaphoreClient/mutexClient.waitingForWithPriority(priority, timeout, function(err, result){})**
  - same as waitingFor except priority
  - client waits for semaphore/mutex with its own priority and will be scheduled according to it.
  - err(semaphore/mutex) : ETIMEDOUT error or other errors returned
 
 priority argument takes follows:
  - redisSharedObject.priority.HIGH : immediate execution(default)
- - redisSharedObject.priority.NORMAL : random delay between 10~30ms
- - redisSharedObject.priority.LOW : random delay between 40~60ms
+ - redisSharedObject.priority.NORMAL : random delay between 15~20ms
+ - redisSharedObject.priority.LOW : random delay between 40~45ms
 
-You can change default priority with **Semaphore/Mutex.setDefaultPriority(priority)** method.
+You can change default priority with **semaphoreClient/mutexClient.setDefaultPriority(priority)** method.
  
-**Semaphore/Mutex.observing(timeout, function callback(err, result){})**
+**semaphoreClient/mutexClient.observing(timeout, function callback(err, result){})**
  - result(semaphore/mutex) : true for success / false when ETIMEDOUT or other errors 
  - err(semaphore/mutex) : ETIMEDOUT error or other errors returned
  
@@ -126,17 +126,17 @@ var redisSharedObject = require('redis-mutex-semaphore');
 
 ...
 
-Semaphore/Mutex.waitingFor(10 /* timeout : second */, function(err, result){
+semaphoreClient/mutexClient.waitingFor(10 /* timeout : second */, function(err, result){
   if(result)
     // doing something with semaphore/lock
 });
 
-Semaphore/Mutex.waitingForWithPriority(redisSharedObject.priority.NORMAL, 10 /* timeout : second */, function(err, result){
+semaphoreClient/mutexClient.waitingForWithPriority(redisSharedObject.priority.NORMAL, 10 /* timeout : second */, function(err, result){
   if(result)
     // doing something with semaphore/lock
 });
 
-Semaphore/Mutex.observing(10 /* timeout : second */, function(err, result){
+semaphoreClient/mutexClient.observing(10 /* timeout : second */, function(err, result){
   if(result)
     // doing something or try to accquire/lock
 });
@@ -149,14 +149,14 @@ If callback is omitted, you can use it with promise.
 
 #### 2.1. get & release method 
 
-**Semaphore.get().then(function(result){})**
+**semaphoreClient.get().then(function(result){})**
  - same as callback version
  
-**Semaphore.rel().then(function(result){})**
+**semaphoreClient.rel().then(function(result){})**
  - same as callback version
  
 ```js
-semaphore.get().then(function(result){
+semaphoreClient.get().then(function(result){
   if(result){ 
     // doing something with semaphore
     return Promise.resolve(result);
@@ -165,20 +165,20 @@ semaphore.get().then(function(result){
     // doing others or return Promise.reject()
 }).then(function(result){
   if(result)
-    return semaphore.rel();
+    return semaphoreClient.rel();
 }).catch(function(e){
 
 });
 ```
 
-**Mutex.get().then(function(mutexID){})**
+**mutexClient.get().then(function(mutexID){})**
  - same as callback version
  
-**Mutex.rel(mutexID).then(function(result){})**
+**mutexClient.rel(mutexID).then(function(result){})**
  - same as callback version
  
 ```js
-mutex.get().then(function(mutexID){
+mutexClient.get().then(function(mutexID){
   if(mutexID){
     // doing something with lock
     return Promise.resolve(mutexID);
@@ -186,7 +186,7 @@ mutex.get().then(function(mutexID){
   else
     // doing others or return Promise.reject()
 }).then(function(mutexID){
-  return mutex.rel(mutexID);
+  return mutexClient.rel(mutexID);
 }).catch(function(e){
 
 });
@@ -194,18 +194,18 @@ mutex.get().then(function(mutexID){
 
 #### 2.2. wait/observe method
 
-**Semaphore/Mutex.waitingFor(timeout).then(function(result){}).catch(function(err){})**
+**semaphoreClient/mutexClient.waitingFor(timeout).then(function(result){}).catch(function(err){})**
  - same as callback version
 
-**Semaphore/Mutex.waitingForWithPriority(priority, timeout).then(function(result){}).catch(function(err){})**
+**semaphoreClient/mutexClient.waitingForWithPriority(priority, timeout).then(function(result){}).catch(function(err){})**
  - same as callback version
 
 priority argument takes follows:
  - same as callback version
 
-You can change default priority with **Semaphore/Mutex.setDefaultPriority(priority)** method.
+You can change default priority with **semaphoreClient/mutexClient.setDefaultPriority(priority)** method.
 
-**Semaphore/Mutex.observing(timeout).then(function(result){}).catch(function(err){})**
+**semaphoreClient/mutexClient.observing(timeout).then(function(result){}).catch(function(err){})**
  - same as callback version
 
 ```js
@@ -213,21 +213,21 @@ var redisSharedObject = require('redis-mutex-semaphore');
 
 ...
 
-Semaphore/Mutex.waitingFor(10 /* timeout : second */).then(function(result){
+semaphoreClient/mutexClient.waitingFor(10 /* timeout : second */).then(function(result){
   if(result)
     // doing something with semaphore/lock
 }).catch(function(e){
   // e could be timed out error or others
 });
 
-Semaphore/Mutex.waitingForWithPriority(redisSharedObject.priority.NORMAL, 10 /* timeout : second */).then(function(result){
+semaphoreClient/mutexClient.waitingForWithPriority(redisSharedObject.priority.NORMAL, 10 /* timeout : second */).then(function(result){
   if(result)
     // doing something with semaphore/lock
 }).catch(function(e){
   // e could be timed out error or others
 });
 
-Semaphore/Mutex.observing(10 /* timeout : second */).then(function(result){
+semaphoreClient/mutexClient.observing(10 /* timeout : second */).then(function(result){
   if(result)
     // doing something or try to accquire/lock
 }).catch(function(e){
@@ -245,8 +245,8 @@ This method returns value of mutex lock or semaphore's count and the sum of wait
 **Note:** It just broadcasts request for status checking to every subscribing clients and waits for their responses until timeout is reached. So if clients are spread out across other processes or network, the timeout value should be big enough to get all of the responses. The default value is 300 - this value is adjusted empirically by testing on the environment that the redis server is not far away from the service using this module geographically.
 
 ```js
-Semaphore/Mutex.getStaus([timeout, ] function callback(err, result){}) // callback
-Semaphore/Mutex.getStaus([timeout]).then(function(result){}) // promise
+semaphoreClient/mutexClient.getStaus([timeout, ] function callback(err, result){}) // callback
+semaphoreClient/mutexClient.getStaus([timeout]).then(function(result){}) // promise
 
 /* 
 sample return value
@@ -268,18 +268,18 @@ Result object contains value, the number of waiting, the number of observing
 **Reset semaphore/mutex**
 
 ```js
-Semaphore/Mutex.reset(function callback(err, result){}) // callback
-Semaphore/Mutex.reset().then(function(result){}) // promise
+semaphoreClient/mutexClient.reset(function callback(err, result){}) // callback
+semaphoreClient/mutexClient.reset().then(function(result){}) // promise
 
-Semaphore/Mutex.resetWithPublish(function callback(err, result){}) // callback
-Semaphore/Mutex.resetWithPublish().then(function(result){}) // promise
+semaphoreClient/mutexClient.resetWithPublish(function callback(err, result){}) // callback
+semaphoreClient/mutexClient.resetWithPublish().then(function(result){}) // promise
 ```
 
 **Extend mutex timeout**
 
 ```js
-Mutex.extend(mutexID, more, function callback(err, result){}) // callback
-Mutex.extend(mutexID, more).then(function(result){}) // promise
+mutexClient.extend(mutexID, more, function callback(err, result){}) // callback
+mutexClient.extend(mutexID, more).then(function(result){}) // promise
 ```
  - result : true for success, otherwise false.
 
@@ -287,10 +287,12 @@ Mutex.extend(mutexID, more).then(function(result){}) // promise
 ```js
 factory.createMutexClient('key', 10); // timeout is set to 10 sec.
 
-Mutex.get(function(err, mutexID){  // mutex's is valid for 10 sec.
+...
+
+mutexClient.get(function(err, mutexID){  // mutex's is valid for 10 sec.
   if(mutexID){
     // doing something with mutex for N sec.
-    Mutex.extend(mutexID, 2, function(err, result){ // at this point, mutex is valid for 10 - N sec.
+    mutexClient.extend(mutexID, 2, function(err, result){ // at this point, mutex is valid for 10 - N sec.
       if(result){ // succeeded to extend 
         // doing something more... 
         // now mutex will is valid for (10 - N + 2) sec.
@@ -311,7 +313,7 @@ Mutex.get(function(err, mutexID){  // mutex's is valid for 10 sec.
 You can register listeners to the following events.
 
 ```js
-Semaphore/Mutex.on(event_name, function(arg){
+semaphoreClient/mutexClient.on(event_name, function(arg){
   // doing something
 });
 ```

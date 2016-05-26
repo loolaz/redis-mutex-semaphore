@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.3.2
+
+* Changed configuration value for(delay time) waitingForWithPriority
+* Modified README instruction
+
 ## 0.3.1
 
 * Fixed potential buts in some test cases
