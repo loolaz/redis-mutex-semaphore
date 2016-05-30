@@ -36,12 +36,12 @@ var factory = redisSharedObject({
   		db: 1
   	});
   	
-  	// or you can reuse existing redis connection(the redis connection to be reused must have a selected db)
+  	// or you can reuse existing redis connection
   
 var factory = redisSharedObject(redisClient);	
 
-factory.createSemaphoreClient('Key', 3 /* initial semaphore count */); // returns promise if callback is omitted
-factory.createMutexClient('Key', 10 /* ttl : second */);  // returns promise if callback is omitted
+factory.createSemaphoreClient('Key', 3 /* initial semaphore count */, function(err, semaphoreClient){}); // returns promise if callback is omitted
+factory.createMutexClient('Key', 10 /* ttl : second */, function(err, mutexClient){});  // returns promise if callback is omitted
 
 var semaphoreClient = factory.getSemaphoreClient('Key'),
     mutexClient = factory.getMutexClient('Key');

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.3.3
+
+* Minor bug fix
+
 ## 0.3.2
 
 * Changed configuration value for(delay time) waitingForWithPriority
