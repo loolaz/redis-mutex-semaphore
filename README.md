@@ -15,14 +15,12 @@ npm install redis-mutex-semaphore
 
 ## Constructing Instances
 
-**factory.createSemaphoreClient(key, count, [function callback(err, result){}])**
-
-**or factory.createSemaphoreClient(key, count).then(function(result){})**
+**createSemaphoreClient(key, count, [function callback(err, result){}])**
+**createSemaphoreClient(key, count).then(function(result){})**
 - result : semaphoreClient object for success / null for fail
 
-**factory.createMutexClient(key, ttl, [function callback(err, result){}])**
-
-**or factory.createMutexClient(key, ttl).then(function(result){})**
+**createMutexClient(key, ttl, [function callback(err, result){}])**
+**createMutexClient(key, ttl).then(function(result){})**
 
 - result : mutexClient object for success / null for fail
 
@@ -293,9 +291,9 @@ mutexClient.get(function(err, mutexID){  // mutex's is valid for 10 sec.
   if(mutexID){
     // doing something with mutex for N sec.
     mutexClient.extend(mutexID, 2, function(err, result){ // at this point, mutex is valid for 10 - N sec.
-      if(result){ // succeeded to extend 
-        // doing something more... 
-        // now mutex will is valid for (10 - N + 2) sec.
+      if(result){ // succeeded to extend  
+        // now mutex is valid for (10 - N + 2) sec.
+        // doing something more...
       }
       else{ // faild to extend
         // mutex is already expired or failed to extend for other reasons
