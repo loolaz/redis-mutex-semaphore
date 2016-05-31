@@ -15,16 +15,16 @@ npm install redis-mutex-semaphore
 
 ## Constructing Instances
 
-**createSemaphoreClient(key, count, [function callback(err, result){}])**
+**createSemaphoreClient(key, count, [function callback(err, semaphoreClient){}])**
 
-**createSemaphoreClient(key, count).then(function(result){})**
-- result : semaphoreClient object for success / null for fail
+**createSemaphoreClient(key, count).then(function(semaphoreClient){})**
+- semaphoreClient : semaphoreClient object for success / null for fail
 
-**createMutexClient(key, ttl, [function callback(err, result){}])**
+**createMutexClient(key, ttl, [function callback(err, mutexClient){}])**
 
-**createMutexClient(key, ttl).then(function(result){})**
+**createMutexClient(key, ttl).then(function(mutexClient){})**
 
-- result : mutexClient object for success / null for fail
+- mutexClient : mutexClient object for success / null for fail
 
 Whenever createXXXClient method is called, the redis key that you have passed through is also reset. So please be careful that you do not lose any context of these objects by mistakenly calling this method with the same key again in other places(other codes in the same process/other processes/other machines) while using the mutex/semaphore with the key.
 
@@ -98,7 +98,7 @@ mutexClient.get(function(err, mutexID){
 Both waitingFor/waitingForWithPriority and observe methods are blocked for a shared object to be released.
 The difference between them is that waitingFor is blocked until getting a lock or timedout. However observing is blocked, and just returns when the observed object is released. 
 
-The order of dispatching waiting clients is determined by considering their waiting priorities. In the case of the redis client having multiple requests sharing the same connection, FIFO(first in, first out) policy is also applied to the waiting queue. Other observing clients and event listeners are not affected by this scheduling policy.
+The order of dispatching waiting clients is determined by considering their waiting priorities. FIFO(first in, first out) policy is also applied to the semaphore/mutexClient if it shares a redis connection. Other observing clients and event listeners are not affected by this scheduling policy.
 
 **semaphoreClient/mutexClient.waitingFor(timeout, function callback(err, result){})**
  - result(semaphore) : true for success / false for fail to accquire
