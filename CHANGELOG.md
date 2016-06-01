@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.3.4
+
+* Fixed the bug that constructor's callback was not returned
+
 ## 0.3.3
 
 * Minor bug fix
