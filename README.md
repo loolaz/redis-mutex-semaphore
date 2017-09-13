@@ -40,6 +40,10 @@ var factory = redisSharedObject({
   
 var factory = redisSharedObject(redisClient);	
 
+    // or you can provide a redisClient _and_ a subscriber client
+
+var factory = redisSharedObject({ client: redisClient, subscriber: anotherRedisClient });
+
 factory.createSemaphoreClient('Key', 3 /* initial semaphore count */, function(err, semaphoreClient){}); // returns promise if callback is omitted
 factory.createMutexClient('Key', 10 /* ttl : second */, function(err, mutexClient){});  // returns promise if callback is omitted
 
