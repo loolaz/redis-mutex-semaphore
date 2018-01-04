@@ -1,7 +1,7 @@
 {
   "name": "redis-mutex-semaphore",
   "description": "redis mutex and semaphore library",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "main": "./lib",
   "dependencies": {
     "redis": "2.5.3",

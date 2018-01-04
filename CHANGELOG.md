@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.3.6
+
+* getXXXClient method creates an object when there is no available object
+
 ## 0.3.4
 
 * Fixed the bug that constructor's callback was not returned

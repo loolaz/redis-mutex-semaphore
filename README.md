@@ -26,7 +26,7 @@ npm install redis-mutex-semaphore
 
 - mutexClient : mutexClient object for success / null for fail
 
-Whenever createXXXClient method is called, the redis key that you have passed through is also reset. So please be careful that you do not lose any context of these objects by mistakenly calling this method with the same key again in other places(other codes in the same process/other processes/other machines) while using the mutex/semaphore with the key.
+Whenever createXXXClient method is called, the redis key that you have passed through is also reset. So please be careful that you do not lose any context of these objects by mistakenly calling this method with the same key again in other places(other codes in the same process/other processes/other machines) while using the mutex/semaphore with the key. If you don't want to remove a key in redis if there exists, do not call createXXXClient method but call getXXXClient immediately(from v0.3.6).
 
 ```js
 var redisSharedObject = require('redis-mutex-semaphore');
